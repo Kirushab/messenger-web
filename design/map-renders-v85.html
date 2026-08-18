@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sigmas — карта, рендеры v85</title>
+<style>
+  :root{
+    --bg:#0B0B0C; --panel:#141416; --surface:#1C1C1F; --surface2:#242428;
+    --text:#F4F4F5; --muted:#8B8B90; --border:rgba(255,255,255,.10);
+    --accent:#10B981; --accent-soft:rgba(16,185,129,.16);
+    --place:#10B981; --food:#F59E0B; --bar:#A855F7; --home:#3B82F6;
+    --park:#22C55E; --shop:#EC4899; --fun:#EF4444; --sport:#14B8A6; --trip:#2563EB;
+    --fs-body:15px; --fs-label:13px; --fs-cap:12px; --fs-micro:11px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#000;color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .page{max-width:1180px;margin:0 auto;padding:28px 16px 60px}
+  header.top{padding:8px 4px 22px;border-bottom:1px solid var(--border);margin-bottom:26px}
+  header.top h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em}
+  header.top p{margin:0;color:var(--muted);font-size:var(--fs-label);line-height:1.5;max-width:680px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .legend .chip{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--border);
+    border-radius:999px;padding:5px 11px;font-size:var(--fs-cap);color:var(--muted)}
+  .legend .dot{width:11px;height:11px;border-radius:50%}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:26px;justify-items:center}
+  figure{margin:0;width:min(330px,92vw)}
+  figcaption{margin-top:12px}
+  figcaption b{display:block;font-size:var(--fs-body);letter-spacing:-.01em}
+  figcaption span{display:block;color:var(--muted);font-size:var(--fs-cap);line-height:1.45;margin-top:3px}
+
+  /* ---- phone frame ---- */
+  .phone{position:relative;width:100%;aspect-ratio:330/620;border-radius:34px;overflow:hidden;
+    background:#000;border:1px solid var(--border);box-shadow:0 20px 50px -18px rgba(0,0,0,.8)}
+  .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:96px;height:22px;
+    background:#000;border-radius:14px;z-index:40}
+  .status{position:absolute;top:0;left:0;right:0;height:34px;z-index:39;display:flex;align-items:center;
+    justify-content:space-between;padding:0 18px;font-size:var(--fs-micro);color:#fff;font-weight:600}
+
+  /* ---- faux map ---- */
+  .map{position:absolute;inset:0;background:#16181A;overflow:hidden}
+  .map .roads{position:absolute;inset:-30%;opacity:.55;
+    background-image:
+      repeating-linear-gradient(58deg, transparent 0 38px, rgba(255,255,255,.05) 38px 40px),
+      repeating-linear-gradient(-32deg, transparent 0 54px, rgba(255,255,255,.045) 54px 56px),
+      repeating-linear-gradient(12deg, transparent 0 96px, rgba(255,255,255,.04) 96px 98px)}
+  .map .park{position:absolute;border-radius:40% 55% 45% 50%;background:rgba(34,197,94,.10)}
+  .map .water{position:absolute;border-radius:50% 40% 55% 45%;background:rgba(37,99,235,.12)}
+  .map .road-main{position:absolute;height:7px;border-radius:6px;background:rgba(255,255,255,.07)}
+
+  /* ---- pins ---- */
+  .pin{position:absolute;width:34px;height:34px;border-radius:50% 50% 50% 0;transform:translate(-50%,-100%) rotate(-45deg);
+    background:var(--c,var(--accent));border:2px solid #fff;box-shadow:0 3px 9px rgba(0,0,0,.45);
+    display:flex;align-items:center;justify-content:center;z-index:10}
+  .pin>span{transform:rotate(45deg);font-size:17px;line-height:1}
+  .pin.lg{width:40px;height:40px}
+  .pin.lg>span{font-size:20px}
+  .pin.active{animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:translate(-50%,-100%) rotate(-45deg) scale(1.16)}50%{transform:translate(-50%,-100%) rotate(-45deg) scale(1.32)}}
+  /* labeled pin uses a non-rotated wrapper (like the real app) so the label stays upright */
+  .pinw{position:absolute;transform:translate(-50%,-100%);z-index:10}
+  .pinw .tear{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--c,var(--accent));
+    border:2px solid #fff;box-shadow:0 3px 9px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center}
+  .pinw .tear>span{transform:rotate(45deg);font-size:17px;line-height:1}
+  .pinw .lab{position:absolute;top:106%;left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-size:var(--fs-micro);font-weight:600;color:#fff;background:rgba(0,0,0,.66);padding:3px 7px;border-radius:8px;
+    box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+  .cluster{position:absolute;transform:translate(-50%,-50%);min-width:38px;height:38px;border-radius:19px;
+    background:var(--accent);border:2px solid #fff;color:#04130D;font-weight:800;font-size:var(--fs-label);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 3px 9px rgba(0,0,0,.4);z-index:11;padding:0 8px}
+  .me{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,#34D399,#10B981);border:3px solid #fff;z-index:12;
+    box-shadow:0 0 0 0 rgba(16,185,129,.45);animation:mering 2s ease-out infinite}
+  @keyframes mering{0%{box-shadow:0 0 0 0 rgba(16,185,129,.45)}100%{box-shadow:0 0 0 18px rgba(16,185,129,0)}}
+  .ava{position:absolute;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;border:2px solid #fff;
+    background:#3B82F6;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:var(--fs-label);z-index:11;box-shadow:0 3px 9px rgba(0,0,0,.4)}
+
+  /* ---- top controls ---- */
+  .topbar{position:absolute;top:42px;left:12px;right:12px;z-index:30;display:flex;flex-direction:column;gap:9px}
+  .search{display:flex;align-items:center;gap:9px;background:rgba(10,10,12,.82);backdrop-filter:blur(10px);
+    border:1px solid var(--border);border-radius:14px;padding:11px 13px;color:var(--muted);font-size:var(--fs-label)}
+  .chips{display:flex;gap:8px;overflow:hidden}
+  .lchip{flex-shrink:0;padding:7px 13px;border-radius:999px;font-size:var(--fs-label);font-weight:600;
+    border:1px solid transparent;background:var(--accent);color:#04130D}
+  .lchip.off{background:rgba(10,10,12,.7);color:#fff;border-color:var(--border);opacity:.75}
+
+  /* ---- side buttons ---- */
+  .sidebtn{position:absolute;right:16px;z-index:28;width:46px;height:46px;border-radius:23px;
+    background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid var(--border);color:#fff;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+  .fab{position:absolute;right:16px;bottom:120px;z-index:29;width:58px;height:58px;border-radius:29px;
+    background:var(--accent);color:#04130D;display:flex;align-items:center;justify-content:center;
+    font-size:30px;font-weight:300;box-shadow:0 8px 22px rgba(16,185,129,.45)}
+
+  /* ---- friends sheet ---- */
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:25;background:var(--bg);
+    border-radius:20px 20px 0 0;border-top:1px solid var(--border);box-shadow:0 -10px 34px -10px rgba(0,0,0,.65);
+    padding:10px 16px 20px}
+  .grab{width:44px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 10px}
+  .sheet h4{margin:2px 0 10px;font-size:var(--fs-label);font-weight:700}
+  .strip{display:flex;gap:14px;overflow:hidden}
+  .strip .f{display:flex;flex-direction:column;align-items:center;gap:5px;width:54px}
+  .strip .f .a{width:46px;height:46px;border-radius:23px;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:var(--fs-label);border:2px solid var(--accent)}
+  .strip .f span{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:54px}
+  .frow{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border)}
+  .frow .a{width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:var(--fs-label);flex-shrink:0}
+  .frow .n{flex:1;min-width:0}
+  .frow .n b{display:block;font-size:var(--fs-body);font-weight:600}
+  .frow .n s{display:block;text-decoration:none;font-size:10px;color:var(--muted);margin-top:1px}
+
+  /* ---- bottom card / sheets ---- */
+  .scrim{position:absolute;inset:0;z-index:35;background:rgba(0,0,0,.4);display:flex;align-items:flex-end}
+  .card{width:100%;background:var(--bg);border-radius:20px 20px 0 0;padding:18px 16px 22px;box-shadow:0 -10px 34px -10px rgba(0,0,0,.65)}
+  .card .hd{display:flex;align-items:center;gap:12px}
+  .card .ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;flex-shrink:0}
+  .card .ti{flex:1;min-width:0}
+  .card .ti b{display:block;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .ti .sub{font-size:var(--fs-cap);color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px}
+  .btns{display:flex;gap:8px;margin-top:16px}
+  .btns+.btns{margin-top:8px}
+  .b{flex:1;padding:11px;border-radius:12px;font-weight:600;font-size:var(--fs-label);display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text)}
+  .b.pri{background:var(--accent);color:#04130D;border-color:transparent}
+  .b.ico{flex:0 0 46px}
+  .b.danger{color:#EF4444}
+
+  .ttl{font-size:20px;font-weight:800;margin:2px 0 4px}
+  .desc{font-size:var(--fs-label);color:var(--muted);margin-bottom:16px;line-height:1.45}
+  .opt{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px;border-radius:14px;
+    border:1px solid var(--border);background:var(--surface2);font-size:var(--fs-body);font-weight:600;margin-bottom:8px}
+  .opt .hint{font-size:var(--fs-cap);color:var(--muted);font-weight:500}
+  .micro{font-size:var(--fs-micro);color:var(--muted);margin-top:6px;line-height:1.45}
+
+  .pickrow{display:flex;align-items:center;gap:12px;padding:9px 4px}
+  .pickrow .a{width:42px;height:42px;border-radius:21px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0;font-size:var(--fs-body)}
+  .pickrow .a img{width:100%;height:100%;border-radius:21px;object-fit:cover}
+  .pickrow b{flex:1;font-size:var(--fs-body);font-weight:500}
+  .send{color:var(--accent)}
+  .finput{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;color:var(--muted);font-size:var(--fs-label);margin-bottom:12px}
+
+  /* settings list */
+  .setrow{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid var(--border);font-size:var(--fs-body)}
+  .setrow.live{color:var(--accent)}
+  .setrow .ld{display:flex;align-items:center;gap:10px}
+  .livedot{width:8px;height:8px;border-radius:4px;background:var(--accent)}
+  .toggle{width:42px;height:25px;border-radius:13px;background:var(--accent);position:relative;flex-shrink:0}
+  .toggle::after{content:'';position:absolute;top:2.5px;left:19.5px;width:20px;height:20px;border-radius:10px;background:#fff}
+  .toggle.off{background:var(--border)}
+  .toggle.off::after{left:2.5px}
+
+  /* live banner */
+  .banner{position:absolute;top:44px;left:50%;transform:translateX(-50%);z-index:31;display:flex;align-items:center;gap:9px;
+    background:linear-gradient(135deg,#10B981,#059669);color:#fff;border-radius:999px;padding:7px 8px 7px 14px;
+    box-shadow:0 6px 18px rgba(16,185,129,.4);font-size:var(--fs-label);font-weight:600}
+  .banner .pd{width:8px;height:8px;border-radius:4px;background:#fff}
+  .banner button{background:rgba(255,255,255,.25);border:none;color:#fff;border-radius:999px;padding:3px 10px;font-size:var(--fs-cap);font-weight:600}
+
+  /* empty */
+  .empty{position:absolute;top:42%;left:24px;right:24px;transform:translateY(-50%);text-align:center;z-index:8}
+  .empty .box{display:inline-block;background:rgba(0,0,0,.62);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;padding:16px 18px}
+  .empty .e{font-size:34px;margin-bottom:6px}
+  .empty b{display:block;font-size:var(--fs-body);font-weight:600;margin-bottom:4px}
+  .empty span{font-size:var(--fs-label);color:rgba(255,255,255,.7);line-height:1.4}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <h1>Карта Sigmas — рендеры&nbsp;v85</h1>
+    <p>Макеты текущего состояния карты после батчей v83–v85: категории и цветные пины, фильтры слоёв, подсветка выбранного пина, «показать всех», карточка точки с «В чат» и ETA, пикер чата, эфир по таймеру, подписи у пинов на зуме, три положения шторки и пустое состояние. Это статичные превью UI, не реальный Mapbox.</p>
+    <div class="legend">
+      <div class="chip"><i class="dot" style="background:var(--place)"></i>Место</div>
+      <div class="chip"><i class="dot" style="background:var(--food)"></i>Еда</div>
+      <div class="chip"><i class="dot" style="background:var(--bar)"></i>Бар</div>
+      <div class="chip"><i class="dot" style="background:var(--home)"></i>Дом</div>
+      <div class="chip"><i class="dot" style="background:var(--park)"></i>Парк</div>
+      <div class="chip"><i class="dot" style="background:var(--shop)"></i>Шопинг</div>
+      <div class="chip"><i class="dot" style="background:var(--fun)"></i>Тусовка</div>
+      <div class="chip"><i class="dot" style="background:var(--sport)"></i>Спорт</div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- 1. Обзор -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map">
+          <div class="roads"></div>
+          <div class="park" style="left:-8%;top:8%;width:46%;height:34%"></div>
+          <div class="water" style="right:-12%;bottom:6%;width:52%;height:40%"></div>
+          <div class="road-main" style="left:-5%;top:46%;width:110%;transform:rotate(-7deg)"></div>
+        </div>
+        <div class="topbar">
+          <div class="search">🔍 Поиск места</div>
+          <div class="chips">
+            <div class="lchip">👤 Люди</div>
+            <div class="lchip">📍 Точки</div>
+            <div class="lchip">🎉 События</div>
+          </div>
+        </div>
+        <div class="cluster" style="left:30%;top:34%">5</div>
+        <div class="ava" style="left:62%;top:30%">М</div>
+        <div class="pin" style="left:46%;top:50%;--c:var(--food)"><span>🍽️</span></div>
+        <div class="pin" style="left:70%;top:46%;--c:var(--bar)"><span>🍸</span></div>
+        <div class="pin" style="left:36%;top:62%;--c:var(--park)"><span>🌳</span></div>
+        <div class="pin" style="left:58%;top:64%;--c:var(--fun)"><span>🎉</span></div>
+        <div class="pin" style="left:78%;top:62%;--c:var(--trip)"><span>✈️</span></div>
+        <div class="me" style="left:50%;top:54%"></div>
+        <div class="sidebtn" style="bottom:230px">⤢</div>
+        <div class="sidebtn" style="bottom:178px">🎯</div>
+        <div class="fab">+</div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <h4>Где друзья · 5 онлайн</h4>
+          <div class="strip">
+            <div class="f"><div class="a" style="background:#3B82F6">М</div><span>Макс</span></div>
+            <div class="f"><div class="a" style="background:#A855F7">Л</div><span>Лена</span></div>
+            <div class="f"><div class="a" style="background:#F59E0B">Д</div><span>Дима</span></div>
+            <div class="f"><div class="a" style="background:#EF4444">К</div><span>Катя</span></div>
+            <div class="f"><div class="a" style="background:#14B8A6">Р</div><span>Рома</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Обзор карты</b><span>Цветные пины по категориям, фильтры слоёв сверху, кластер людей, «показать всех» (⤢) и «ко мне» (🎯), шторка друзей в peek.</span></figcaption>
+    </figure>
+
+    <!-- 2. Карточка точки -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads"></div>
+          <div class="park" style="left:-8%;top:6%;width:44%;height:30%"></div>
+        </div>
+        <div class="pin active lg" style="left:50%;top:30%;--c:var(--bar)"><span>🍸</span></div>
+        <div class="scrim">
+          <div class="card">
+            <div class="hd">
+              <div class="ico" style="background:var(--accent-soft)">🍸</div>
+              <div class="ti">
+                <b>Бар «Своя»</b>
+                <div class="sub"><span>🔒 Избранным</span><span>· 1.2 км от вас</span><span>· 🚗 ~8 мин</span></div>
+              </div>
+            </div>
+            <div class="btns">
+              <div class="b pri">🧭 Маршрут</div>
+              <div class="b">💬 В чат</div>
+            </div>
+            <div class="btns">
+              <div class="b">↗ Поделиться</div>
+              <div class="b ico">✏️</div>
+              <div class="b ico danger">🗑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Карточка точки</b><span>Расстояние + ETA «🚗 ~8 мин». Кнопки «В чат» (#8) и «Изменить» (#1). Выбранный пин подсвечен пульсом (#5).</span></figcaption>
+    </figure>
+
+    <!-- 3. Поделиться в чат -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads"></div></div>
+        <div class="scrim">
+          <div class="card">
+            <div class="ttl" style="font-size:17px">Поделиться в чат</div>
+            <div class="desc" style="margin-bottom:12px">📍 Бар «Своя»</div>
+            <div class="finput">🔍 Поиск чата</div>
+            <div class="pickrow"><div class="a" style="background:#3B82F6">М</div><b>Макс</b><span class="send">➤</span></div>
+            <div class="pickrow"><div class="a" style="background:#A855F7">К</div><b>Квартирник 🎸</b><span class="send">➤</span></div>
+            <div class="pickrow"><div class="a" style="background:#F59E0B">Д</div><b>Дима</b><span class="send">➤</span></div>
+            <div class="pickrow"><div class="a" style="background:#EF4444">В</div><b>Выходные</b><span class="send">➤</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Пикер чата (#8)</b><span>Поиск + список диалогов и групп. Тап — локация уходит в чат и рисуется там мини-картой.</span></figcaption>
+    </figure>
+
+    <!-- 4. Эфир по таймеру -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads"></div></div>
+        <div class="scrim">
+          <div class="card">
+            <div class="ttl" style="font-size:17px">📡 Эфир геолокации</div>
+            <div class="desc">Друзья будут видеть, где ты, в реальном времени. На сколько включить?</div>
+            <div class="opt">15 минут <span class="hint">авто-стоп</span></div>
+            <div class="opt">1 час <span class="hint">авто-стоп</span></div>
+            <div class="opt">Пока не выключу</div>
+            <div class="micro">Таймер работает, пока открыто приложение. Если закроешь Sigmas — выключи эфир вручную.</div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Эфир по таймеру (#14)</b><span>Выбор длительности с авто-выключением. Прямо предупреждаем про клиентский таймер — без ложных обещаний.</span></figcaption>
+    </figure>
+
+    <!-- 5. Эфир активен + шторка half -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads"></div>
+          <div class="water" style="right:-10%;top:10%;width:48%;height:36%"></div>
+        </div>
+        <div class="banner"><i class="pd"></i>Вы в эфире · до 14:30 <button>Стоп</button></div>
+        <div class="me" style="left:48%;top:30%"></div>
+        <div class="sheet" style="padding-bottom:0">
+          <div class="grab"></div>
+          <h4>Где друзья · 5 онлайн</h4>
+          <div class="frow"><div class="a" style="background:#3B82F6">М</div><div class="n"><b>Макс</b><s>в эфире · 2 мин назад</s></div><span>💬</span></div>
+          <div class="frow"><div class="a" style="background:#A855F7">Л</div><div class="n"><b>Лена</b><s>5 мин назад</s></div><span>💬</span></div>
+          <div class="frow"><div class="a" style="background:#F59E0B">Д</div><div class="n"><b>Дима</b><s>12 мин назад</s></div><span>💬</span></div>
+          <div class="frow" style="border:none"><div class="a" style="background:#EF4444">К</div><div class="n"><b>Катя</b><s>где-то рядом</s></div><span>💬</span></div>
+        </div>
+      </div>
+      <figcaption><b>Эфир активен · шторка «половина» (#10)</b><span>Баннер с временем окончания. Шторка теперь имеет среднее положение — список виден, но карта тоже.</span></figcaption>
+    </figure>
+
+    <!-- 6. Подписи на зуме -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads" style="opacity:.7"></div>
+          <div class="park" style="left:-6%;bottom:-8%;width:50%;height:40%"></div>
+          <div class="road-main" style="left:-5%;top:38%;width:110%;transform:rotate(4deg)"></div>
+        </div>
+        <div class="pinw" style="left:32%;top:34%;--c:var(--food)"><div class="tear"><span>☕️</span></div><div class="lab">Кофе «Сова»</div></div>
+        <div class="pinw" style="left:70%;top:30%;--c:var(--bar)"><div class="tear"><span>🍸</span></div><div class="lab">Бар «Своя»</div></div>
+        <div class="pinw" style="left:50%;top:60%;--c:var(--park)"><div class="tear"><span>🌳</span></div><div class="lab">Парк Горького</div></div>
+        <div class="pinw" style="left:80%;top:64%;--c:var(--fun)"><div class="tear"><span>🎉</span></div><div class="lab">Днюха Ромы</div></div>
+        <div class="sidebtn" style="bottom:178px">🎯</div>
+        <div class="fab">+</div>
+      </div>
+      <figcaption><b>Подписи у пинов (#12)</b><span>На сильном зуме (≥15) под каждым пином — название. На обзорном зуме подписи скрыты, чтобы не захламлять.</span></figcaption>
+    </figure>
+
+    <!-- 7. Пустое состояние -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads"></div></div>
+        <div class="me" style="left:50%;top:46%"></div>
+        <div class="empty">
+          <div class="box">
+            <div class="e">🗺️</div>
+            <b>На карте пока пусто</b>
+            <span>Добавь точку через «+» или позови друзей в Sigmas — они появятся здесь.</span>
+          </div>
+        </div>
+        <div class="sidebtn" style="bottom:178px">🎯</div>
+        <div class="fab">+</div>
+      </div>
+      <figcaption><b>Пустое состояние (#15)</b><span>Когда ты на карте, но друзей/точек/событий нет — приглашение к действию вместо пустоты.</span></figcaption>
+    </figure>
+
+    <!-- 8. Настройки точки + вибрация -->
+    <figure>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="map"><div class="roads"></div></div>
+        <div class="pin lg" style="left:50%;top:30%;--c:var(--place)"><span>📍</span></div>
+        <div class="scrim">
+          <div class="card" style="padding-top:10px">
+            <div class="grab"></div>
+            <div class="setrow live"><div class="ld"><i class="livedot"></i>Транслировать геолокацию вживую</div></div>
+            <div class="setrow">Переместить точку <span>›</span></div>
+            <div class="setrow">Скрыться с карты <span>›</span></div>
+            <div class="setrow" style="color:#EF4444">Удалить точку насовсем <span>›</span></div>
+            <div class="setrow" style="border:none"><div class="ld">📳 Вибрация</div><div class="toggle"></div></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Настройки + вибрация (#7)</b><span>Тумблер тактильного отклика. Отклик есть на тап по пину, снап шторки и постановку точки.</span></figcaption>
+    </figure>
+
+  </div>
+</div>
+</body>
+</html>

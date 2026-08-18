@@ -1,0 +1,10 @@
+project_id = "messenger-web"
+
+# Регистрация вызывается до авторизации, поэтому функция публичная.
+# Внутри остаются собственная валидация, rate limit и работа через service role.
+[functions.registration-request]
+verify_jwt = false
+
+# Authenticated delivery requests; recipient resolution is verified inside the function too.
+[functions.send-push]
+verify_jwt = true

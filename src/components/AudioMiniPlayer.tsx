@@ -1,0 +1,44 @@
+import { useAudioStore } from '@/stores/audioStore';
+
+// Глобальный мини-плеер голосовых. Рендерится в Layout → виден на всех экранах
+// (чаты, вкладки), поэтому аудио продолжает играть и управляться при навигации.
+export default function AudioMiniPlayer() {
+  const { current, isPlaying, progress, rate, toggle, cycleRate, stop, seekRatio } = useAudioStore();
+
+  if (!current) return null;
+
+  const seekFromEvent = (clientX: number, el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    seekRatio((clientX - rect.left) / rect.width);
+  };
+
+  return (
+    <div className="audio-mini safe-top">
+      <button className="audio-mini-play" onClick={toggle} aria-label={isPlaying ? 'Пауза' : 'Играть'}>
+        {isPlaying
+          ? <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          : <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>}
+      </button>
+
+      <div className="audio-mini-mid">
+        <div className="audio-mini-title">{current.title}</div>
+        <div className="audio-mini-sub">Голосовое сообщение</div>
+        <div
+          className="audio-mini-track"
+          onPointerDown={(e) => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); seekFromEvent(e.clientX, e.currentTarget); }}
+          onPointerMove={(e) => { if (e.currentTarget.hasPointerCapture(e.pointerId)) seekFromEvent(e.clientX, e.currentTarget); }}
+        >
+          <div className="audio-mini-fill" style={{ transform: `scaleX(${Math.max(0, Math.min(1, progress))})` }} />
+        </div>
+      </div>
+
+      <button className="audio-mini-rate" onClick={cycleRate} aria-label="Скорость">
+        {rate === 1 ? '1x' : rate === 1.5 ? '1.5x' : '2x'}
+      </button>
+      <button className="audio-mini-close" onClick={stop} aria-label="Закрыть">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  );
+}

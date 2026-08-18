@@ -1,0 +1,12 @@
+{
+  // Имя воркера → префикс адреса вида messenger-web.<твой-аккаунт>.workers.dev
+  "name": "messenger-web",
+  "compatibility_date": "2026-06-29",
+
+  // Чистый статический SPA: своего серверного скрипта нет, отдаём папку сборки.
+  "assets": {
+    "directory": "./dist/",
+    // На неизвестных путях отдаём index.html (SPA-fallback для React Router).
+    "not_found_handling": "single-page-application"
+  }
+}

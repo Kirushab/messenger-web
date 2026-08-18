@@ -1,0 +1,6 @@
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: camera=*, microphone=*, geolocation=*
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate

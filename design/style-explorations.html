@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru" data-style="current" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sigmas · Стили и анимации</title>
+<style>
+/* =========================================================================
+   ПАЛИТРЫ ПО СТИЛЯМ И ТЕМАМ
+   Стиль × тема задают набор переменных. Экраны используют только переменные,
+   поэтому переключение стиля/темы перекрашивает всё разом.
+   ========================================================================= */
+
+:root{
+  --r-sm:8px; --r:12px; --r-lg:16px; --r-xl:20px; --pill:999px;
+  --ff:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --ff-display:var(--ff);
+  --shadow:none; --shadow-lg:none;
+  --hairline:1px;
+  --grad-party:linear-gradient(135deg,#EC4899,#BE185D);
+  --grad-trip:linear-gradient(135deg,#60A5FA,#2563EB);
+  --accent-contrast:#000;
+}
+
+/* ---------- CURRENT (реальный стиль приложения: монохром iOS) ---------- */
+html[data-style="current"][data-mode="dark"]{
+  --bg:#000; --surface:#1A1A1A; --surface-2:#262626; --text:#FFF; --muted:#8C8C8C;
+  --border:rgba(255,255,255,.10); --accent:#FFF; --accent-contrast:#000; --accent-soft:rgba(255,255,255,.12);
+  --success:#22C55E; --shadow:none; --shadow-lg:none;
+}
+html[data-style="current"][data-mode="light"]{
+  --bg:#FFF; --surface:#F5F5F5; --surface-2:#EDEDED; --text:#000; --muted:#999;
+  --border:rgba(0,0,0,.08); --accent:#000; --accent-contrast:#FFF; --accent-soft:rgba(0,0,0,.06);
+  --success:#16A34A; --shadow:none; --shadow-lg:none;
+}
+
+/* ---------- PROPOSED (графит + один уверенный акцент + глубина и ритм) ---------- */
+html[data-style="proposed"]{
+  --r-sm:10px; --r:14px; --r-lg:18px; --r-xl:24px;
+  --accent-contrast:#FFF;
+}
+html[data-style="proposed"][data-mode="dark"]{
+  --bg:#0D0D12; --surface:#16161D; --surface-2:#20202A; --text:#F2F2F6; --muted:#8A8A99;
+  --border:rgba(255,255,255,.07); --accent:#10B981; --accent-2:#34D399; --accent-contrast:#000; --accent-soft:rgba(16,185,129,.16);
+  --success:#34D399;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --shadow-lg:0 12px 40px -12px rgba(0,0,0,.6);
+}
+html[data-style="proposed"][data-mode="light"]{
+  --bg:#F6F6FB; --surface:#FFFFFF; --surface-2:#FFFFFF; --text:#15151D; --muted:#6E6E80;
+  --border:rgba(20,20,45,.08); --accent:#059669; --accent-2:#10B981; --accent-contrast:#FFF; --accent-soft:rgba(5,150,105,.10);
+  --success:#34D399;
+  --shadow:0 1px 2px rgba(30,30,60,.06); --shadow-lg:0 14px 40px -16px rgba(40,40,90,.22);
+}
+
+/* ---------- APPLE (iOS system: grouped lists, SF, system blue) ---------- */
+html[data-style="apple"]{
+  --r-sm:8px; --r:10px; --r-lg:14px; --r-xl:18px;
+  --ff:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',sans-serif;
+}
+html[data-style="apple"][data-mode="dark"]{
+  --bg:#000000; --surface:#1C1C1E; --surface-2:#2C2C2E; --text:#FFFFFF; --muted:#8E8E93;
+  --border:rgba(84,84,88,.55); --accent:#0A84FF; --accent-contrast:#FFF; --accent-soft:rgba(10,132,255,.18);
+  --success:#30D158; --shadow:none; --shadow-lg:none;
+}
+html[data-style="apple"][data-mode="light"]{
+  --bg:#F2F2F7; --surface:#FFFFFF; --surface-2:#FFFFFF; --text:#000000; --muted:#8E8E93;
+  --border:rgba(60,60,67,.29); --accent:#007AFF; --accent-contrast:#FFF; --accent-soft:rgba(0,122,255,.10);
+  --success:#34C759; --shadow:none; --shadow-lg:none;
+}
+
+/* ---------- POP (тёплый/живой: насыщенный акцент, округлость, дружелюбие) ---------- */
+html[data-style="pop"]{
+  --r-sm:12px; --r:16px; --r-lg:20px; --r-xl:26px;
+  --accent:#FF4D79; --accent-2:#FF9F45; --accent-contrast:#FFF;
+}
+html[data-style="pop"][data-mode="dark"]{
+  --bg:#190F1C; --surface:#261A2C; --surface-2:#34253B; --text:#FCEFF4; --muted:#A98FA3;
+  --border:rgba(255,255,255,.08); --accent-soft:rgba(255,77,121,.18);
+  --success:#2DD4BF;
+  --shadow:0 2px 8px rgba(0,0,0,.35); --shadow-lg:0 16px 44px -14px rgba(255,77,121,.28);
+  --grad-party:linear-gradient(135deg,#FF6B81,#C026D3); --grad-trip:linear-gradient(135deg,#FBBF24,#FB7185);
+}
+html[data-style="pop"][data-mode="light"]{
+  --bg:#FFF6F4; --surface:#FFFFFF; --surface-2:#FFEDEA; --text:#2A1620; --muted:#9A808A;
+  --border:rgba(120,40,70,.10); --accent:#FF3D71; --accent-soft:rgba(255,61,113,.10);
+  --success:#0EA5A0;
+  --shadow:0 2px 10px rgba(255,80,120,.10); --shadow-lg:0 18px 44px -16px rgba(255,80,120,.30);
+  --grad-party:linear-gradient(135deg,#FF6B81,#C026D3); --grad-trip:linear-gradient(135deg,#FBBF24,#FB7185);
+}
+
+/* ========================= КАРКАС СТРАНИЦЫ ========================= */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(124,92,252,.10), transparent 60%),
+    #0a0a0c;
+  color:#e8e8ee; font-family:var(--ff); min-height:100vh; padding-bottom:60px;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px}
+.title-row h1{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff}
+.title-row p{font-size:13px;color:#9a9aa8;margin-top:4px;line-height:1.5;max-width:680px}
+
+/* контролы */
+.controls{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+  background:rgba(10,10,12,.72);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:12px;margin:16px 0 22px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.seg{display:inline-flex;background:rgba(255,255,255,.06);border-radius:11px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:#b9b9c6;font:inherit;font-size:13px;font-weight:600;
+  padding:8px 14px;border-radius:9px;cursor:pointer;transition:.18s;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:#fff;color:#111}
+.ctl-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#7d7d8a;margin-right:2px;font-weight:700}
+.hint{font-size:12px;color:#8a8a98;margin-left:auto}
+
+/* галерея телефонов */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:30px 22px;align-items:start}
+.device{display:flex;flex-direction:column;align-items:center;gap:10px}
+.device .cap{font-size:12px;font-weight:700;color:#a9a9b6;letter-spacing:.01em}
+.device .cap small{display:block;font-weight:500;color:#73737f;font-size:11px;margin-top:2px}
+
+.phone{
+  width:min(330px,92vw); height:680px; border-radius:42px; padding:11px;
+  background:#0c0c0e; position:relative;
+  box-shadow:0 0 0 2px rgba(255,255,255,.06), 0 30px 60px -24px rgba(0,0,0,.8);
+}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:120px;height:26px;
+  background:#0c0c0e;border-radius:0 0 16px 16px;z-index:30}
+.screen{
+  position:relative;width:100%;height:100%;border-radius:32px;overflow:hidden;
+  background:var(--bg);color:var(--text);font-family:var(--ff);
+  display:flex;flex-direction:column;
+}
+.screen-scroll{flex:1;overflow:hidden;position:relative}
+.statusbar{height:46px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 6px;font-size:13px;font-weight:600;color:var(--text);flex-shrink:0}
+.statusbar .dots{display:flex;gap:5px;align-items:center}
+.statusbar .bat{width:22px;height:11px;border:1.5px solid var(--text);border-radius:3px;opacity:.85;position:relative}
+.statusbar .bat::after{content:"";position:absolute;inset:1.5px;width:70%;background:var(--text);border-radius:1px}
+
+/* ===== общие UI-атомы (через переменные) ===== */
+.hdr{display:flex;align-items:center;gap:12px;padding:8px 16px 12px;border-bottom:var(--hairline) solid var(--border);flex-shrink:0}
+.hdr .chev{width:30px;height:30px;border-radius:999px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text);font-size:18px}
+.hdr h2{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.hdr .sub{font-size:11px;color:var(--muted);margin-top:1px}
+.spacer{margin-left:auto}
+.iconbtn{width:34px;height:34px;border-radius:999px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:16px}
+.body{padding:16px;display:flex;flex-direction:column;gap:11px;overflow:hidden}
+
+.card{background:var(--surface);border-radius:var(--r-lg);padding:14px;display:flex;align-items:center;gap:13px;box-shadow:var(--shadow);border:var(--hairline) solid transparent}
+.tile{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:var(--surface-2)}
+.card .grow{flex:1;min-width:0}
+.card .t{font-size:15px;font-weight:600}
+.card .d{font-size:12px;color:var(--muted);margin-top:2px}
+.chev-r{color:var(--muted);font-size:18px;opacity:.7}
+.bar{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:8px}
+.bar > i{display:block;height:100%;border-radius:3px;background:var(--success);width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.overline{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:6px 2px 2px}
+
+.btn-primary{background:var(--accent);color:var(--accent-contrast);border:0;border-radius:var(--r);padding:13px;font:inherit;font-size:15px;font-weight:700;text-align:center}
+.btn-soft{background:var(--surface);color:var(--text);border:var(--hairline) solid var(--border);border-radius:var(--r);padding:11px;font-size:14px;font-weight:600;text-align:center}
+
+/* аватар */
+.av{width:46px;height:46px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0;position:relative}
+.av.dot::after{content:"";position:absolute;right:1px;bottom:1px;width:12px;height:12px;border-radius:999px;background:#22C55E;border:2.5px solid var(--bg)}
+
+/* чат */
+.bubbles{display:flex;flex-direction:column;gap:8px;padding:14px 14px 6px;overflow:hidden}
+.b{max-width:74%;padding:9px 13px;border-radius:18px;font-size:14px;line-height:1.35}
+.b.in{background:var(--surface);border-bottom-left-radius:6px;align-self:flex-start}
+.b.out{background:var(--accent);color:var(--accent-contrast);border-bottom-right-radius:6px;align-self:flex-end}
+.b .tm{font-size:10px;opacity:.6;margin-top:3px;text-align:right}
+.composer{margin-top:auto;display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:var(--hairline) solid var(--border)}
+.composer .field{flex:1;background:var(--surface);border-radius:999px;padding:10px 14px;color:var(--muted);font-size:13px}
+.composer .rnd{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--surface);color:var(--text)}
+.composer .send{background:var(--accent);color:var(--accent-contrast)}
+.typing{display:inline-flex;gap:3px;padding:11px 14px;background:var(--surface);border-radius:18px;border-bottom-left-radius:6px;align-self:flex-start}
+.typing i{width:6px;height:6px;border-radius:999px;background:var(--muted);animation:td 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes td{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+
+/* событие (Booking-герой) */
+.hero{height:230px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;flex-shrink:0;color:#fff}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.72) 100%)}
+.hero .kick{position:relative;z-index:2;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.95}
+.hero .h{position:relative;z-index:2;font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1.1}
+.hero .dt{position:relative;z-index:2;font-size:13px;opacity:.92;margin-top:6px}
+.rsvpbar{display:flex;gap:8px;padding:12px 14px;border-top:var(--hairline) solid var(--border);flex-shrink:0;background:var(--bg)}
+.rsvp{flex:1;text-align:center;padding:11px 4px;border-radius:var(--r);font-size:13px;font-weight:700;background:var(--surface);color:var(--text);border:var(--hairline) solid var(--border)}
+.rsvp.on{background:var(--accent);color:var(--accent-contrast);border-color:transparent}
+.av-row{display:flex;padding-left:6px}
+.av-row .av{width:34px;height:34px;font-size:13px;margin-left:-8px;border:2.5px solid var(--bg)}
+
+/* ==== СТИЛЕ-СПЕЦИФИЧНЫЕ структурные правила ==== */
+/* PROPOSED: акцентная окантовка прогресса + кольцо у активной темы */
+html[data-style="proposed"] .bar > i{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+html[data-style="proposed"] .tile{background:var(--accent-soft);}
+html[data-style="proposed"] .card{border-color:var(--border)}
+html[data-style="proposed"] .hdr h2{font-weight:800;letter-spacing:-.02em}
+html[data-style="proposed"] .overline{color:var(--accent)}
+
+/* APPLE: сгруппированные inset-списки, крупный заголовок, разделители */
+html[data-style="apple"] .body{gap:0;padding:14px 16px}
+html[data-style="apple"] .group{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;margin-bottom:18px;border:var(--mode-light,0)}
+html[data-style="apple"] .group .card{background:transparent;border-radius:0;border-bottom:.5px solid var(--border);box-shadow:none;padding:11px 14px}
+html[data-style="apple"] .group .card:last-child{border-bottom:0}
+html[data-style="apple"] .tile{border-radius:8px;width:34px;height:34px;font-size:19px}
+html[data-style="apple"] .av{width:40px;height:40px}
+html[data-style="apple"] .largeTitle{font-size:30px;font-weight:800;letter-spacing:-.02em;padding:4px 16px 10px;color:var(--text)}
+html[data-style="apple"] .overline{padding-left:16px;text-transform:uppercase;font-size:12px;letter-spacing:.02em;color:var(--muted);font-weight:500;margin-bottom:7px}
+html[data-style="apple"] .btn-primary{border-radius:12px}
+html[data-style="apple"] .b.out{border-radius:18px;border-bottom-right-radius:6px}
+
+/* POP: градиентный акцент, округлые «пухлые» элементы */
+html[data-style="pop"] .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+html[data-style="pop"] .b.out{background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+html[data-style="pop"] .bar > i{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+html[data-style="pop"] .tile{background:var(--accent-soft);border-radius:15px}
+html[data-style="pop"] .rsvp.on{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent}
+html[data-style="pop"] .hdr h2{font-weight:800}
+html[data-style="pop"] .card{box-shadow:var(--shadow)}
+html[data-style="pop"] .overline{color:var(--accent)}
+
+/* анимации появления */
+.anim .card,.anim .b,.anim .av-row,.anim .group{animation:rise .5s both}
+.anim .stagger>*{animation:rise .5s both}
+.anim .screen{animation:pageIn .42s cubic-bezier(.16,1,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px) scale(.992)}to{opacity:1;transform:none}}
+
+/* tap ripple для интерактивных карточек */
+.tap{position:relative;overflow:hidden;cursor:pointer;transition:transform .12s}
+.tap:active{transform:scale(.97)}
+.tap::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,var(--accent-soft) 10%,transparent 60%);opacity:0;transform:scale(.3);transition:transform .5s,opacity .6s;pointer-events:none}
+.tap:active::after{opacity:1;transform:scale(1.4);transition:0s}
+
+/* скелетон-демо */
+.sk{background:var(--surface);border-radius:var(--r-lg);padding:14px;display:flex;align-items:center;gap:13px}
+.sk .ln{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--surface-2) 25%,rgba(255,255,255,.12) 37%,var(--surface-2) 63%);background-size:400% 100%;animation:sh 1.3s infinite}
+.sk .blk{width:46px;height:46px;border-radius:13px;flex-shrink:0;background:linear-gradient(90deg,var(--surface-2) 25%,rgba(255,255,255,.12) 37%,var(--surface-2) 63%);background-size:400% 100%;animation:sh 1.3s infinite}
+@keyframes sh{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+/* like burst demo */
+.heart{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}
+.heart .h{font-size:18px;transition:transform .25s}
+.heart.liked .h{transform:scale(1.15);color:#F43F5E}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+.legend{margin:34px 0 8px;font-size:13px;color:#9a9aa8;line-height:1.6}
+.legend b{color:#d7d7e2}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sw{font-size:11px;color:#cfcfd9;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 9px;display:flex;align-items:center;gap:7px}
+.sw i{width:13px;height:13px;border-radius:4px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title-row">
+    <h1>Sigmas · стили и анимации</h1>
+    <p>Один и тот же экран в трёх стилях. Переключай <b>стиль</b> и <b>тему</b> — все макеты перекрашиваются. Карточки можно нажимать (есть ripple), прогресс-бары и появление анимированы. Это макеты для выбора направления, не финальный UI.</p>
+  </div>
+
+  <div class="controls">
+    <span class="ctl-label">Стиль</span>
+    <div class="seg" id="styleSeg">
+      <button data-style="current" aria-pressed="true">Текущий</button>
+      <button data-style="proposed" aria-pressed="false">Мой вариант</button>
+      <button data-style="apple" aria-pressed="false">Apple</button>
+      <button data-style="pop" aria-pressed="false">Тёплый</button>
+    </div>
+    <span class="ctl-label">Тема</span>
+    <div class="seg" id="modeSeg">
+      <button data-mode="dark" aria-pressed="true">Тёмная</button>
+      <button data-mode="light" aria-pressed="false">Светлая</button>
+    </div>
+    <span class="hint" id="styleHint"></span>
+  </div>
+
+  <div class="gallery anim" id="gallery"><!-- phones injected --></div>
+
+  <div class="legend" id="legend"></div>
+</div>
+
+<script>
+/* ====== данные стилей: подпись + палитра-свотчи ====== */
+const STYLE_INFO = {
+  current:{name:'Текущий', tag:'монохром iOS — как сейчас', sw:[['#000','фон'],['#1A1A1A','карточка'],['#FFF','текст/акцент'],['#22C55E','успех']]},
+  proposed:{name:'Мой вариант', tag:'монохром-глубина + зелёный акцент (#10B981, как в прогрессе языков) — выбрано', sw:[['#0D0D12','фон'],['#16161D','карточка'],['#20202A','поднятая'],['#10B981','акцент'],['#34D399','успех']]},
+  apple:{name:'Apple', tag:'iOS system: grouped-списки, SF, системный синий', sw:[['#000','фон'],['#1C1C1E','ячейка'],['#0A84FF','акцент'],['#8E8E93','серый']]},
+  pop:{name:'Тёплый', tag:'живой и дружелюбный: тёплый градиентный акцент, округлость', sw:[['#190F1C','фон'],['#261A2C','карточка'],['#FF4D79','акцент'],['#FF9F45','акцент-2'],['#2DD4BF','успех']]},
+};
+
+/* ====== экраны (HTML-фабрики) ====== */
+function courseScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><div class="chev">‹</div><div style="font-size:20px">🇪🇸</div>
+    <div><h2>Испанский</h2><div class="sub">A1 · пройдено 1 из 5 тем</div></div></div>
+  <div class="screen-scroll"><div class="body">
+    <div class="overline">A1 · Базовый</div>
+    <div class="stagger" style="display:flex;flex-direction:column;gap:11px">
+      ${themeCard('👋','Приветствия','5 слов · пройдено',100)}
+      ${themeCard('👨‍👩‍👧','Семья','5 слов · в процессе',40)}
+      ${themeCard('🍞','Еда','5 слов',0)}
+      ${themeCard('🔢','Числа','5 слов',0)}
+      ${themeCard('🏠','Бытовое','5 слов',0)}
+    </div>
+    <div class="overline">🎓 Тесты уровня</div>
+    <div class="btn-primary tap">Тест A1 · слова</div>
+  </div></div>`;}
+
+function themeCard(em,t,d,pct){return `
+  <div class="card tap"><div class="tile">${em}</div>
+    <div class="grow"><div class="t">${t}</div><div class="d">${d}</div>
+      <div class="bar"><i data-pct="${pct}"></i></div></div>
+    <div class="chev-r">›</div></div>`;}
+
+function lobbyScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><div class="chev">‹</div><h2>Обучение</h2>
+    <div class="spacer"></div>
+    <div class="iconbtn">🔥 7</div><div class="iconbtn">🏆</div></div>
+  <div class="screen-scroll"><div class="body">
+    <div class="group stagger" style="display:flex;flex-direction:column;gap:11px">
+      ${langCard('🇬🇧','Английский','A1 → A2 · IELTS',70)}
+      ${langCard('🇮🇹','Итальянский','A1 → B1 · CILS',45)}
+      ${langCard('🇪🇸','Испанский','A1 · новый',20)}
+      ${langCard('🇩🇪','Немецкий','A1 · новый',0)}
+      ${langCard('🇫🇷','Французский','A1 · новый',0)}
+    </div>
+    <div class="card tap"><div class="tile">🎓</div><div class="grow"><div class="t">Тест MBA / GMAT</div><div class="d">Quant · Verbal · Data Sufficiency</div></div><div class="chev-r">›</div></div>
+  </div></div>`;}
+
+function langCard(fl,t,d,pct){return `
+  <div class="card tap"><div class="tile" style="font-size:26px">${fl}</div>
+    <div class="grow"><div class="t">${t}</div><div class="d">${d}</div>
+      <div class="bar"><i data-pct="${pct}"></i></div></div>
+    <div class="chev-r">›</div></div>`;}
+
+function chatsScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><h2 style="font-size:22px;font-weight:800">Чаты</h2><div class="spacer"></div><div class="iconbtn">🔍</div><div class="iconbtn">✎</div></div>
+  <div class="screen-scroll"><div class="body">
+    <div class="group stagger" style="display:flex;flex-direction:column;gap:11px">
+      ${chatRow('МК','#7C5CFC,#9D7BFF','Маша Кузнецова','Скинула фото с вечера 🔥','14:32',2,true)}
+      ${chatRow('СД','#F59E0B,#EF4444','Саша · Поездка','печатает…','13:08',0,true,true)}
+      ${chatRow('Д','#10B981,#0EA5E9','Дима','Ок, договорились','12:55',0,false)}
+      ${chatRow('АЛ','#EC4899,#BE185D','Аня Л.','Голосовое (0:42)','вчера',0,false)}
+      ${chatRow('КП','#3B82F6,#2563EB','Костя','Ты видел тот матч?','вчера',0,false)}
+    </div>
+  </div></div>`;}
+
+function chatRow(ini,grad,name,msg,time,unread,dot,typing){return `
+  <div class="card tap">
+    <div class="av ${dot?'dot':''}" style="background:linear-gradient(135deg,${grad})">${ini}</div>
+    <div class="grow"><div class="t">${name}</div>
+      <div class="d" style="${typing?'color:var(--accent)':''}">${msg}</div></div>
+    <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+      <div style="font-size:11px;color:var(--muted)">${time}</div>
+      ${unread?`<div style="min-width:20px;height:20px;border-radius:999px;background:var(--accent);color:var(--accent-contrast);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px">${unread}</div>`:''}
+    </div></div>`;}
+
+function chatScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><div class="chev">‹</div>
+    <div class="av dot" style="width:36px;height:36px;font-size:13px;background:linear-gradient(135deg,#7C5CFC,#9D7BFF)">МК</div>
+    <div><h2 style="font-size:15px">Маша Кузнецова</h2><div class="sub" style="color:var(--success)">в сети</div></div></div>
+  <div class="screen-scroll" style="display:flex;flex-direction:column">
+    <div class="bubbles">
+      <div class="b in">Привет! Идёшь сегодня на встречу?<div class="tm">14:20</div></div>
+      <div class="b out">Да, конечно 🙌<div class="tm">14:21</div></div>
+      <div class="b in">Скинула фото с прошлого раза 🔥<div class="tm">14:32</div></div>
+      <div class="b out">Огонь, сохранил<div class="tm">14:33</div></div>
+      <div class="typing"><i></i><i></i><i></i></div>
+      <div style="align-self:center;margin-top:6px">
+        <span class="heart" onclick="this.classList.toggle('liked')"><span class="h">♥</span> нравится</span>
+      </div>
+    </div>
+    <div class="composer"><div class="rnd">＋</div><div class="field">Сообщение…</div><div class="rnd send">➤</div></div>
+  </div>`;}
+
+function eventScreen(){return `
+  ${statusbar()}
+  <div class="hero" style="background:var(--grad-party)">
+    <div class="kick">🎉 Вечеринка</div>
+    <div class="h">День рождения Саши</div>
+    <div class="dt">Сб, 5 июля · 20:00 · Лофт «Этаж»</div>
+  </div>
+  <div class="screen-scroll"><div class="body" style="gap:14px">
+    <div class="card" style="gap:10px"><div class="tile">📍</div><div class="grow"><div class="t">Лофт «Этаж»</div><div class="d">ул. Пушкина, 10 · 2.4 км</div></div></div>
+    <div>
+      <div class="overline">Идут · 8</div>
+      <div class="av-row">
+        <div class="av" style="background:linear-gradient(135deg,#7C5CFC,#9D7BFF)">М</div>
+        <div class="av" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">С</div>
+        <div class="av" style="background:linear-gradient(135deg,#10B981,#0EA5E9)">Д</div>
+        <div class="av" style="background:linear-gradient(135deg,#EC4899,#BE185D)">А</div>
+        <div class="av" style="background:var(--surface-2);color:var(--muted)">+5</div>
+      </div>
+    </div>
+    <div class="card" style="gap:10px"><div class="tile">🌤️</div><div class="grow"><div class="t">+24°, ясно</div><div class="d">Прогноз на вечер</div></div></div>
+  </div></div>
+  <div class="rsvpbar"><div class="rsvp on">Иду</div><div class="rsvp">Возможно</div><div class="rsvp">Не иду</div></div>`;}
+
+function loadingScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><div class="chev">‹</div><h2>Загрузка → скелетон</h2></div>
+  <div class="screen-scroll"><div class="body">
+    <div class="overline">вместо «Загрузка…» — каркас</div>
+    ${skRow()} ${skRow()} ${skRow()} ${skRow()}
+  </div></div>`;}
+function skRow(){return `<div class="sk"><div class="blk"></div><div style="flex:1;display:flex;flex-direction:column;gap:8px"><div class="ln" style="width:55%"></div><div class="ln" style="width:80%"></div><div class="ln" style="width:35%"></div></div></div>`;}
+
+function statusbar(){return `<div class="statusbar"><span>9:41</span><span class="dots"><span>●●●</span><span style="font-size:11px">5G</span><span class="bat"></span></span></div>`;}
+
+/* --- карта --- */
+function mapScreen(){return `
+  ${statusbar()}
+  <div class="screen-scroll" style="position:relative">
+    <div style="position:absolute;inset:0;background:
+      repeating-linear-gradient(0deg,transparent 0 37px,var(--border) 37px 38px),
+      repeating-linear-gradient(90deg,transparent 0 37px,var(--border) 37px 38px),
+      var(--surface-2)"></div>
+    <div style="position:absolute;top:0;bottom:0;left:40%;width:12px;background:var(--surface);opacity:.65"></div>
+    <div style="position:absolute;left:0;right:0;top:52%;height:12px;background:var(--surface);opacity:.65"></div>
+    <div style="position:absolute;top:12px;left:12px;right:12px;z-index:4"><div style="background:var(--surface);border-radius:999px;padding:11px 16px;color:var(--muted);font-size:13px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px">🔍 Поиск места…</div></div>
+    ${pin('🎉','27%','30%','var(--accent)')}
+    ${pin('🍕','64%','44%','#F59E0B')}
+    ${pin('📍','44%','64%','var(--success)')}
+    <div style="position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:999px;background:#3B82F6;border:3px solid #fff;box-shadow:0 0 0 7px rgba(59,130,246,.22)"></div>
+    <div style="position:absolute;left:12px;right:12px;bottom:12px;z-index:4"><div class="card" style="box-shadow:var(--shadow-lg)"><div class="tile">🎉</div><div class="grow"><div class="t">День рождения Саши</div><div class="d">2.4 км · сегодня 20:00</div></div><div class="btn-primary tap" style="padding:9px 14px;flex-shrink:0">Маршрут</div></div></div>
+  </div>`;}
+function pin(em,l,t,c){return `<div style="position:absolute;left:${l};top:${t};transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;z-index:3"><div style="width:34px;height:34px;border-radius:999px;background:${c};display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 5px 12px rgba(0,0,0,.35)">${em}</div><div style="width:2px;height:8px;background:${c}"></div></div>`;}
+
+/* --- истории --- */
+function storiesScreen(){return `
+  <div class="screen-scroll" style="position:relative;background:var(--grad-party)">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.4),transparent 22%,transparent 58%,rgba(0,0,0,.6))"></div>
+    <div style="position:absolute;top:52px;left:12px;right:12px;display:flex;gap:4px;z-index:3">
+      <span style="flex:1;height:3px;border-radius:3px;background:#fff"></span>
+      <span style="flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.35);overflow:hidden"><i style="display:block;height:100%;width:55%;background:#fff"></i></span>
+      <span style="flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.35)"></span>
+    </div>
+    <div style="position:absolute;top:66px;left:14px;right:14px;display:flex;align-items:center;gap:10px;z-index:3;color:#fff">
+      <div class="av" style="width:34px;height:34px;font-size:13px;background:linear-gradient(135deg,#7C5CFC,#9D7BFF)">МК</div>
+      <div style="font-size:13px;font-weight:700">Маша · <span style="opacity:.8;font-weight:500">2 ч</span></div>
+      <div style="margin-left:auto;font-size:18px;opacity:.9">✕</div>
+    </div>
+    <div style="position:absolute;left:16px;right:16px;bottom:66px;text-align:center;color:#fff;font-size:19px;font-weight:800;z-index:3;text-shadow:0 2px 10px rgba(0,0,0,.4)">Лучший вечер 🔥</div>
+    <div style="position:absolute;left:12px;right:12px;bottom:14px;display:flex;align-items:center;gap:10px;z-index:3">
+      <div style="flex:1;border:1.5px solid rgba(255,255,255,.6);border-radius:999px;padding:10px 14px;color:#fff;font-size:13px;opacity:.9">Ответить…</div>
+      <span class="heart" style="color:#fff" onclick="this.classList.toggle('liked')"><span class="h" style="color:#fff">♥</span></span>
+      <div style="color:#fff;font-size:20px">➤</div>
+    </div>
+  </div>`;}
+
+/* --- звонок --- */
+function callScreen(){return `
+  ${statusbar()}
+  <div class="screen-scroll" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:24px 20px 24px;background:radial-gradient(120% 55% at 50% 0,var(--accent-soft),transparent 70%)">
+    <div style="text-align:center;margin-top:18px">
+      <div class="av" style="width:106px;height:106px;font-size:40px;background:linear-gradient(135deg,#7C5CFC,#9D7BFF);margin:0 auto">МК</div>
+      <div style="font-size:21px;font-weight:700;margin-top:16px;color:var(--text)">Маша Кузнецова</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:4px">05:23 · зашифровано 🔒</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;max-width:236px">
+      ${callBtn('🔇','Звук')}${callBtn('📹','Видео')}${callBtn('🔊','Динамик')}
+      ${callBtn('✋','Рука')}${callBtn('💬','Чат')}${callBtn('⋯','Ещё')}
+    </div>
+    <div class="tap" style="width:64px;height:64px;border-radius:999px;background:#EF4444;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 8px 24px rgba(239,68,68,.4)">✕</div>
+  </div>`;}
+function callBtn(ic,l){return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div class="tap" style="width:58px;height:58px;border-radius:999px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:21px;color:var(--text)">${ic}</div><span style="font-size:11px;color:var(--muted)">${l}</span></div>`;}
+
+/* --- шахматы --- */
+function chessScreen(){
+  const bd=['♜','♞','♝','♛','♚','♝','♞','♜'], wd=['♖','♘','♗','♕','♔','♗','♘','♖'];
+  let cells='';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const dark=(r+c)%2===1; let pc='',col='';
+    if(r===0){pc=bd[c];col='#2b2b2b';}else if(r===1){pc='♟';col='#2b2b2b';}
+    else if(r===6){pc='♙';col='#fff';}else if(r===7){pc=wd[c];col='#fff';}
+    cells+=`<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:24px;background:${dark?'#769656':'#EEEED2'};color:${col};text-shadow:0 1px 1px rgba(0,0,0,.25)">${pc}</div>`;
+  }
+  return `
+   ${statusbar()}
+   <div class="hdr"><div class="chev">‹</div><h2>Шахматы</h2><div class="spacer"></div><div class="iconbtn">⚑</div></div>
+   <div class="screen-scroll"><div class="body" style="gap:14px">
+     <div class="card" style="gap:10px;padding:10px 14px"><div class="av" style="width:34px;height:34px;font-size:13px;background:linear-gradient(135deg,#3B82F6,#2563EB)">КП</div><div class="grow"><div class="t" style="font-size:14px">Костя</div></div><div style="font-family:monospace;font-size:15px;font-weight:700;color:var(--text)">04:58</div></div>
+     <div style="display:grid;grid-template-columns:repeat(8,1fr);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-lg)">${cells}</div>
+     <div class="card" style="gap:10px;padding:10px 14px"><div class="av dot" style="width:34px;height:34px;font-size:13px;background:linear-gradient(135deg,#7C5CFC,#9D7BFF)">Я</div><div class="grow"><div class="t" style="font-size:14px">Вы · ваш ход</div></div><div style="font-family:monospace;font-size:15px;font-weight:700;color:var(--accent)">05:12</div></div>
+   </div></div>`;}
+
+/* --- профиль --- */
+function profileScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><div class="chev">‹</div><h2>Профиль</h2><div class="spacer"></div><div class="iconbtn">⚙︎</div></div>
+  <div class="screen-scroll"><div class="body" style="gap:14px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:8px 0">
+      <div class="av" style="width:88px;height:88px;font-size:34px;background:linear-gradient(135deg,#7C5CFC,#9D7BFF)">А</div>
+      <div style="font-size:19px;font-weight:800;color:var(--text)">Алекс</div>
+      <div style="font-size:13px;color:var(--muted)">@alex · онлайн</div>
+    </div>
+    <div class="card" style="justify-content:space-around;text-align:center">
+      ${stat('48','друзей')}${stat('12','событий')}${stat('🔥 7','стрик')}
+    </div>
+    <div class="group stagger" style="display:flex;flex-direction:column;gap:11px">
+      ${prow('🔔','Уведомления')}${prow('🎨','Оформление')}${prow('🔒','Приватность')}${prow('💾','Хранилище')}
+    </div>
+    <div class="btn-soft tap" style="color:#EF4444">Выйти</div>
+  </div></div>`;}
+function stat(v,l){return `<div class="grow"><div style="font-size:18px;font-weight:800;color:var(--text)">${v}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${l}</div></div>`;}
+function prow(em,t){return `<div class="card tap" style="padding:12px 14px"><div class="tile" style="width:34px;height:34px;font-size:18px">${em}</div><div class="grow"><div class="t" style="font-size:14px">${t}</div></div><div class="chev-r">›</div></div>`;}
+
+/* --- GMAT --- */
+function gmatScreen(){return `
+  ${statusbar()}
+  <div class="hdr"><div class="chev">‹</div><h2 style="font-size:15px">Тест MBA / GMAT</h2><div class="spacer"></div><div class="sub">3 / 22</div></div>
+  <div style="height:4px;background:var(--surface-2)"><div style="height:100%;width:14%;background:var(--accent)"></div></div>
+  <div class="screen-scroll"><div class="body" style="gap:11px">
+    <div style="align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#fff;background:#2563EB;padding:3px 9px;border-radius:999px">Problem Solving</div>
+    <div style="font-size:16px;font-weight:600;line-height:1.45;color:var(--text)">Скидка 20%, затем ещё 25% от сниженной цены. Какой единой скидке это эквивалентно?</div>
+    ${opt('A','35%')}${opt('B','40%',true)}${opt('C','45%')}${opt('D','50%')}${opt('E','22,5%')}
+    <div style="background:var(--accent-soft);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--text);line-height:1.5"><b style="color:var(--success)">✓ Верно.</b> 0,8 × 0,75 = 0,6 → платим 60% → скидка 40%.</div>
+  </div></div>`;}
+function opt(L,t,ok){return `<div class="tap" style="display:flex;gap:10px;align-items:center;background:${ok?'rgba(16,185,129,.16)':'var(--surface)'};border:1px solid ${ok?'#10B981':'var(--border)'};border-radius:var(--r);padding:12px 14px;font-size:14px;color:${ok?'#10B981':'var(--text)'};font-weight:500"><span style="font-weight:800;opacity:.8">${L}</span><span>${t}</span></div>`;}
+
+/* ====== экраны для галереи ====== */
+const SCREENS = [
+  {cap:'Курс языка', sub:'испанский A1 — главный экран', f:courseScreen},
+  {cap:'Обучение', sub:'выбор языка + GMAT', f:lobbyScreen},
+  {cap:'Чаты', sub:'список диалогов', f:chatsScreen},
+  {cap:'Диалог', sub:'переписка + ввод', f:chatScreen},
+  {cap:'Событие', sub:'Booking-стиль + RSVP', f:eventScreen},
+  {cap:'Карта', sub:'места и маршрут', f:mapScreen},
+  {cap:'История', sub:'просмотр сторис', f:storiesScreen},
+  {cap:'Звонок', sub:'активный вызов', f:callScreen},
+  {cap:'Шахматы', sub:'игра с таймером', f:chessScreen},
+  {cap:'Профиль', sub:'аккаунт и настройки', f:profileScreen},
+  {cap:'GMAT', sub:'вопрос теста + разбор', f:gmatScreen},
+  {cap:'Загрузка', sub:'скелетон вместо текста', f:loadingScreen},
+];
+
+/* ====== рендер ====== */
+const gallery=document.getElementById('gallery');
+function build(){
+  gallery.innerHTML = SCREENS.map(s=>`
+    <div class="device">
+      <div class="cap">${s.cap}<small>${s.sub}</small></div>
+      <div class="phone"><div class="notch"></div><div class="screen">${s.f()}</div></div>
+    </div>`).join('');
+  // прогресс-бары заполняем после вставки (запуск анимации)
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.bar > i').forEach(i=>{i.style.width=(i.dataset.pct||0)+'%';});
+  });
+}
+
+/* свотчи + подпись стиля */
+function renderLegend(style){
+  const info=STYLE_INFO[style];
+  document.getElementById('styleHint').textContent='✦ '+info.tag;
+  document.getElementById('legend').innerHTML=
+    `<b>${info.name}.</b> ${info.tag}.<div class="swatches">`+
+    info.sw.map(([c,n])=>`<span class="sw"><i style="background:${c}"></i>${n} · ${c}</span>`).join('')+`</div>`;
+}
+
+/* переключатели */
+function wireSeg(id,attr,after){
+  document.getElementById(id).addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    document.documentElement.setAttribute(attr,b.dataset[attr.replace('data-','')]);
+    [...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed', x===b));
+    // перезапуск анимаций появления
+    gallery.classList.remove('anim'); void gallery.offsetWidth; gallery.classList.add('anim');
+    build();
+    if(after)after(b.dataset[attr.replace('data-','')]);
+  });
+}
+wireSeg('styleSeg','data-style',renderLegend);
+wireSeg('modeSeg','data-mode');
+
+build();
+renderLegend('current');
+</script>
+</body>
+</html>

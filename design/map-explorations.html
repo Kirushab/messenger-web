@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Карта — рендеры и улучшения</title>
+<style>
+:root{
+  --bg:#000; --surface:#1A1A1A; --surface-2:#1C1C1C; --text:#FFF; --muted:#8C8C8C;
+  --border:rgba(255,255,255,.10); --accent:#10B981; --accent-soft:rgba(16,185,129,.16);
+  --r:12px; --r-lg:16px; --r-xl:20px; --pill:999px;
+  --ff:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --shadow-2:0 10px 34px -10px rgba(0,0,0,.65);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(1100px 500px at 50% -10%,rgba(16,185,129,.10),transparent 60%),#0a0a0c;color:#e8e8ee;font-family:var(--ff);padding:22px 14px 70px}
+.wrap{max-width:1180px;margin:0 auto}
+h1{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff}
+.sub{font-size:13px;color:#9a9aa8;margin-top:5px;max-width:680px;line-height:1.5}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:30px 22px;margin-top:24px;align-items:start}
+.device{display:flex;flex-direction:column;align-items:center;gap:10px}
+.cap{font-size:12px;font-weight:700;color:#a9a9b6}
+.cap small{display:block;font-weight:500;color:#73737f;font-size:11px;margin-top:2px}
+.cap .new{color:var(--accent)}
+.phone{width:min(330px,92vw);height:680px;border-radius:42px;padding:11px;background:#0c0c0e;position:relative;box-shadow:0 0 0 2px rgba(255,255,255,.06),0 30px 60px -24px rgba(0,0,0,.8)}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:120px;height:26px;background:#0c0c0e;border-radius:0 0 16px 16px;z-index:30}
+.screen{position:relative;width:100%;height:100%;border-radius:32px;overflow:hidden;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* фейковая карта */
+.map{position:absolute;inset:0;background:
+  radial-gradient(circle at 70% 30%, #14361f 0 8%, transparent 8%),
+  radial-gradient(circle at 22% 64%, #123040 0 11%, transparent 11%),
+  #20262b;}
+.map .road{position:absolute;background:#2f363d}
+.map .water{position:absolute;left:-5%;bottom:14%;width:55%;height:90px;background:#16323f;border-radius:40% 60% 50% 50%/60% 50% 50% 40%;transform:rotate(-8deg)}
+.map .park{position:absolute;right:8%;top:18%;width:120px;height:90px;background:#163a22;border-radius:48% 52% 40% 60%/50% 40% 60% 50%}
+.blocks{position:absolute;inset:0;opacity:.5}
+.blocks span{position:absolute;background:#272d33;border-radius:2px}
+.statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 6px;font-size:13px;font-weight:600;z-index:20;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+
+/* пины */
+.pin{position:absolute;transform:translate(-50%,-100%);z-index:5}
+.teardrop{width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.45)}
+.teardrop > span{transform:rotate(45deg);font-size:16px;line-height:1}
+.av{width:40px;height:40px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;background:linear-gradient(135deg,#7C5CFC,#9D7BFF)}
+.cluster{width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,.92);border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.me{width:20px;height:20px;border-radius:50%;background:#3B82F6;border:3px solid #fff;box-shadow:0 0 0 7px rgba(59,130,246,.22),0 2px 6px rgba(0,0,0,.4);transform:translate(-50%,-50%)}
+.me.pulse::after{content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid #3B82F6;animation:mePulse 2s ease-out infinite}
+@keyframes mePulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.6);opacity:0}}
+
+/* FAB + меню */
+.fab{position:absolute;right:16px;bottom:24px;width:56px;height:56px;border-radius:28px;background:var(--accent);color:#000;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:300;box-shadow:var(--shadow-2);z-index:18}
+.fab.x{font-size:30px}
+.fabmenu{position:absolute;right:16px;bottom:92px;display:flex;flex-direction:column;align-items:flex-end;gap:11px;z-index:18}
+.fi{display:flex;align-items:center;gap:10px;background:var(--surface-2);color:var(--text);border:1px solid var(--border);border-radius:var(--pill);padding:9px 14px 9px 12px;box-shadow:var(--shadow-2);font-size:13px;font-weight:600;white-space:nowrap}
+.fi i{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:15px}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(2px);z-index:10}
+
+/* верхние контролы (proposed) */
+.topctl{position:absolute;top:54px;left:12px;right:12px;display:flex;gap:8px;z-index:16}
+.chip{background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:var(--pill);padding:7px 13px;font-size:12px;font-weight:600;color:#fff;display:flex;align-items:center;gap:6}
+.chip.on{background:var(--accent);color:#000;border-color:transparent}
+.sidectl{position:absolute;right:16px;top:96px;display:flex;flex-direction:column;gap:10px;z-index:16}
+.rbtn{width:46px;height:46px;border-radius:23px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.rbtn.accent{background:var(--accent);color:#000;border-color:transparent}
+
+/* нижний лист */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:16px 16px 22px;box-shadow:0 -8px 30px rgba(0,0,0,.5);z-index:20;border-top:1px solid var(--border)}
+.grip{width:38px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 12px}
+.poihead{display:flex;align-items:center;gap:12px}
+.poihead .ic{width:52px;height:52px;border-radius:16px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.poihead .t{font-size:17px;font-weight:700}
+.poihead .d{font-size:12px;color:var(--muted);margin-top:2px}
+.actions{display:flex;gap:8px;margin-top:16px}
+.actions button{flex:1;padding:11px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface-2);color:var(--text);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px}
+.actions button.primary{background:var(--accent);color:#000;border-color:transparent}
+.actions button.icon{flex:0 0 46px;color:#EF4444}
+.listrow{display:flex;align-items:center;gap:12px;background:var(--surface-2);box-shadow:0 1px 2px rgba(0,0,0,.4);border-radius:var(--r-lg);padding:12px;margin-bottom:8px}
+.listrow .ic{width:40px;height:40px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.listrow .t{font-size:15px;font-weight:600}
+.listrow .d{font-size:12px;color:var(--muted);margin-top:1px}
+.listrow .chev{margin-left:auto;color:var(--muted);font-size:18px}
+.sheet h3{font-size:20px;font-weight:800;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline}
+.sheet h3 span{font-size:12px;color:var(--muted);font-weight:500}
+
+.legend{margin-top:30px;font-size:13px;color:#9a9aa8;line-height:1.6}
+.legend b{color:#d7d7e2}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Карта — рендеры</h1>
+  <div class="sub">Текущий вид после апгрейда (v79) и предложение по улучшениям. Карта — схематичная заглушка (реальная — Mapbox). <span style="color:var(--accent)">Зелёным</span> отмечено новое/предложенное.</div>
+  <div class="gallery" id="g"></div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<script>
+const statusbar = `<div class="statusbar"><span>9:41</span><span>5G ▰▰▰</span></div>`;
+const mapBase = `
+  <div class="map">
+    <div class="park"></div><div class="water"></div>
+    <div class="road" style="top:0;bottom:0;left:38%;width:14px"></div>
+    <div class="road" style="left:0;right:0;top:46%;height:14px"></div>
+    <div class="road" style="top:0;bottom:0;left:72%;width:9px"></div>
+    <div class="blocks">
+      <span style="left:10%;top:10%;width:40px;height:30px"></span>
+      <span style="left:48%;top:14%;width:34px;height:46px"></span>
+      <span style="left:14%;top:54%;width:50px;height:34px"></span>
+      <span style="left:55%;top:58%;width:38px;height:38px"></span>
+      <span style="left:78%;top:62%;width:30px;height:44px"></span>
+    </div>
+  </div>`;
+const pins = `
+  <div class="pin" style="left:30%;top:34%"><div class="av">МК</div></div>
+  <div class="pin" style="left:62%;top:28%"><div class="av" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">СД</div></div>
+  <div class="cluster" style="position:absolute;left:46%;top:52%;transform:translate(-50%,-50%);z-index:5">5</div>
+  <div class="pin" style="left:26%;top:62%"><div class="teardrop" style="background:#10B981"><span>📍</span></div></div>
+  <div class="pin" style="left:70%;top:46%"><div class="teardrop" style="background:#EC4899"><span>🎉</span></div></div>
+  <div class="me pulse" style="position:absolute;left:50%;top:50%"></div>`;
+
+function screen(inner){return `<div class="phone"><div class="notch"></div><div class="screen">${statusbar}${mapBase}${pins}${inner}</div></div>`;}
+
+const FRAMES = [
+  { cap:'Карта — сейчас', sub:'пины, моя точка, кнопка «+»', new:false, inner:`<div class="fab">+</div>` },
+  { cap:'Меню «+»', sub:'действия со стаггером', new:true, inner:`
+      <div class="backdrop"></div>
+      <div class="fabmenu">
+        <div class="fi"><i>📍</i>Точка интереса</div>
+        <div class="fi"><i>📡</i>Поделиться в эфире</div>
+        <div class="fi"><i>🗂</i>Все точки</div>
+        <div class="fi"><i>🎯</i>Ко мне</div>
+      </div>
+      <div class="fab x">×</div>` },
+  { cap:'Карточка точки', sub:'дистанция + маршрут/шер/удалить', new:true, inner:`
+      <div class="fab">+</div>
+      <div class="sheet">
+        <div class="grip"></div>
+        <div class="poihead"><div class="ic">🍕</div><div><div class="t">Любимая пиццерия</div><div class="d">🌍 Видна всем · 1.2 км от вас</div></div></div>
+        <div class="actions">
+          <button class="primary">🧭 Маршрут</button>
+          <button>↗ Поделиться</button>
+          <button class="icon">🗑</button>
+        </div>
+      </div>` },
+  { cap:'Все точки', sub:'список + полёт к точке', new:true, inner:`
+      <div class="sheet" style="max-height:62%;overflow:hidden">
+        <div class="grip"></div>
+        <h3>Точки интереса <span>4</span></h3>
+        <div class="listrow"><div class="ic">🍕</div><div><div class="t">Любимая пиццерия</div><div class="d">1.2 км от вас</div></div><div class="chev">›</div></div>
+        <div class="listrow"><div class="ic">☕</div><div><div class="t">Кофейня на углу</div><div class="d">600 м от вас</div></div><div class="chev">›</div></div>
+        <div class="listrow"><div class="ic">🏞</div><div><div class="t">Парк у реки</div><div class="d">2.4 км от вас</div></div><div class="chev">›</div></div>
+        <div class="listrow"><div class="ic">📍</div><div><div class="t">Секретное место</div><div class="d">🔒 Избранным</div></div><div class="chev">›</div></div>
+      </div>` },
+  { cap:'Предложение', sub:'стиль карты, фильтры, recenter', new:true, inner:`
+      <div class="topctl">
+        <div class="chip on">👤 Люди</div>
+        <div class="chip">📍 Точки</div>
+        <div class="chip">🎉 События</div>
+      </div>
+      <div class="sidectl">
+        <div class="rbtn">🛰</div>
+        <div class="rbtn accent">🎯</div>
+      </div>
+      <div class="fab">+</div>` },
+];
+
+document.getElementById('g').innerHTML = FRAMES.map(f=>`
+  <div class="device">
+    <div class="cap ${f.new?'new':''}">${f.new?'✦ ':''}${f.cap}<small>${f.sub}</small></div>
+    ${screen(f.inner)}
+  </div>`).join('');
+
+document.getElementById('legend').innerHTML = `<b>Что показано:</b> 4 первых кадра — то, что уже есть в v79 (меню «+», карточка точки с действиями, список точек). Последний кадр «Предложение» — улучшения из списка ниже: <b>фильтры слоёв</b> (люди/точки/события), <b>переключатель стиля карты</b> (🛰 спутник) и <b>постоянная кнопка «Ко мне»</b> (🎯) сбоку, а не только в меню.`;
+</script>
+</body>
+</html>

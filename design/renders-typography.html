@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sigmas — типографика: до / после / после-2</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --surface:#F5F5F5; --text:#000; --text2:#666; --muted:#999;
+    --border:rgba(0,0,0,0.08); --trip:linear-gradient(135deg,#60A5FA,#2563EB);
+    --green:#16A34A; --greenbg:rgba(22,163,74,.12);
+    --amber:#B45309; --amberbg:rgba(245,158,11,.16);
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#E9EBEF;color:#111;font-family:var(--font);padding:22px 14px 60px;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:23px;font-weight:800;letter-spacing:-.4px;margin:0 0 4px}
+  .sub{color:#5b6270;font-size:13.5px;margin:0 0 18px;max-width:780px}
+  .legend{background:#fff;border:1px solid #e3e6eb;border-radius:14px;padding:12px 14px;margin:0 0 24px;font-size:13px;color:#444;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+  .chip{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:14px;height:14px;border-radius:4px;display:inline-block}
+  .dot.g{background:var(--greenbg);border:1px solid var(--green)}
+  .dot.a{background:var(--amberbg);border:1px solid var(--amber)}
+
+  .cols{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .col{flex:0 0 auto;width:340px;max-width:100%}
+  .col-h{text-align:center;margin-bottom:10px}
+  .col-h .nm{font-size:15px;font-weight:800;letter-spacing:.3px}
+  .col-h .ds{font-size:11.5px;color:#6b7280;margin-top:1px}
+
+  .phone{width:340px;background:var(--bg);border-radius:36px;border:8px solid #0d0f14;
+    box-shadow:0 14px 40px rgba(20,24,33,.24);overflow:hidden}
+  .status{height:38px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 5px;font-size:12px;font-weight:600}
+  .screen{padding:4px 16px 18px}
+
+  /* элемент текста с px-бейджем */
+  .el{position:relative}
+  .px{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;font-weight:700;color:#aab0b8;
+    margin-left:7px;vertical-align:middle;white-space:nowrap}
+  .px.g{color:var(--green);background:var(--greenbg);padding:1px 5px;border-radius:5px}
+  .px.a{color:var(--amber);background:var(--amberbg);padding:1px 5px;border-radius:5px}
+
+  .overline{font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+  .scr-title{font-weight:800;letter-spacing:-.3px;margin:8px 0 2px}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin:6px 0 14px}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .ctitle{font-weight:700}
+  .bignum{font-weight:800;line-height:1;color:#2563EB;text-align:right}
+  .bignum .u{display:block;font-weight:600;color:var(--muted);margin-top:2px}
+  .cbody{color:var(--text);margin:8px 0 12px}
+  .crow{display:flex;align-items:center;gap:10px}
+  .badge{background:#22C55E;color:#fff;font-weight:700;padding:3px 9px;border-radius:999px}
+  .meta{color:var(--text2);font-weight:500}
+  .datecap{color:var(--muted);margin-left:auto}
+
+  .sec-hdr{font-weight:700;margin:8px 0 8px}
+  .setrow{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-top:1px solid var(--border)}
+  .rtitle{font-weight:500}
+  .rsub{color:var(--muted);margin-top:1px}
+  .chev{color:#c4c8ce}
+  .footnote{color:var(--muted);text-align:center;margin-top:14px}
+
+  table.sum{width:100%;border-collapse:collapse;margin-top:30px;background:#fff;border:1px solid #e3e6eb;border-radius:12px;overflow:hidden;font-size:13px}
+  table.sum th,table.sum td{padding:9px 12px;text-align:left;border-bottom:1px solid #eef0f3}
+  table.sum th{background:#111;color:#fff;font-weight:700;font-size:12px}
+  table.sum td.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .tg{color:var(--green);font-weight:700}.ta{color:var(--amber);font-weight:700}.tn{color:#9aa1ad}
+  .note{font-size:11.5px;color:#9aa1ad;text-align:center;margin-top:12px}
+  @media(max-width:760px){.col{width:100%}.phone{width:min(340px,92vw);margin:0 auto}.cols{gap:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Типографика · до / после / после-2</h1>
+  <p class="sub">Один и тот же экран в трёх состояниях. Числа в бейджах — размер шрифта (px). <b style="color:var(--green)">Зелёным</b> — что уже изменено в v65. <b style="color:var(--amber)">Жёлтым</b> — что добавит «после-2» (докат отложенных 14/16/24/10). Разница маленькая (±1–2px) — поэтому подписал размеры явно.</p>
+  <div class="legend">
+    <span class="chip"><span class="dot g"></span> изменено в v65 (уже сделано)</span>
+    <span class="chip"><span class="dot a"></span> изменится в «после-2» (если докатить)</span>
+    <span class="chip" style="color:#6b7280">бейдж вида <span class="px" style="margin:0">16→17</span> — было→стало</span>
+  </div>
+
+  <div class="cols" id="cols"></div>
+
+  <table class="sum">
+    <thead><tr><th>Элемент</th><th>Роль / токен</th><th>ДО</th><th>ПОСЛЕ (v65)</th><th>ПОСЛЕ-2</th></tr></thead>
+    <tbody id="sumbody"></tbody>
+  </table>
+  <p class="note">Это реконструкция представительного экрана на реальных токенах приложения — не скриншот сборки. Цель — сравнить размеры по ролям.</p>
+</div>
+
+<script>
+const STATES = [
+  {key:'before', nm:'ДО', ds:'оригинал (магические числа)'},
+  {key:'v65',    nm:'ПОСЛЕ', ds:'v65 — сейчас'},
+  {key:'after2', nm:'ПОСЛЕ-2', ds:'+ докат 14 / 16 / 24 / 10'},
+];
+// size[role] = {before, v65, after2}
+const S = {
+  scrTitle: {before:22, v65:20, after2:20, role:'title',   tok:'--fs-title',   name:'Заголовок экрана («События»)'},
+  overline: {before:11, v65:11, after2:11, role:'micro',   tok:'--fs-micro',   name:'Надпись-секция («БЛИЖАЙШИЕ»)'},
+  cTitle:   {before:16, v65:16, after2:17, role:'heading', tok:'--fs-heading', name:'Заголовок карточки («Paris»)'},
+  cBody:    {before:14, v65:14, after2:15, role:'body',    tok:'--fs-body',    name:'Текст карточки'},
+  meta:     {before:13, v65:13, after2:13, role:'label',   tok:'--fs-label',   name:'Мета («4 участника»)'},
+  dateCap:  {before:12, v65:12, after2:12, role:'caption', tok:'--fs-caption', name:'Дата-подпись («через 3 дня»)'},
+  badge:    {before:11, v65:11, after2:11, role:'micro',   tok:'--fs-micro',   name:'Бейдж («Иду»)'},
+  bigNum:   {before:24, v65:24, after2:26, role:'display', tok:'--fs-display', name:'Крупное число («12»)'},
+  secHdr:   {before:18, v65:17, after2:17, role:'heading', tok:'--fs-heading', name:'Заголовок секции («Управление»)'},
+  rTitle:   {before:14, v65:14, after2:15, role:'body',    tok:'--fs-body',    name:'Строка настройки — заголовок'},
+  rSub:     {before:13, v65:13, after2:13, role:'label',   tok:'--fs-label',   name:'Строка настройки — подпись'},
+  footnote: {before:10, v65:10, after2:11, role:'micro',   tok:'--fs-micro',   name:'Сноска («Обновлено…»)'},
+};
+// что меняется на каждом шаге
+const prevKey = {before:null, v65:'before', after2:'v65'};
+const stepColor = {v65:'g', after2:'a'}; // в колонке v65 подсветка зелёная, в after2 — жёлтая
+
+function badge(id, stateKey){
+  const s = S[id], cur = s[stateKey], prev = prevKey[stateKey] ? s[prevKey[stateKey]] : null;
+  if(prev!==null && cur!==prev){
+    const cls = stepColor[stateKey];
+    return `<i class="px ${cls}">${prev}→${cur}</i>`;
+  }
+  return `<i class="px">${cur}</i>`;
+}
+function fs(id, stateKey){ return `font-size:${S[id][stateKey]}px`; }
+
+function frame(st){
+  const k = st.key;
+  return `
+  <div class="col">
+    <div class="col-h"><div class="nm">${st.nm}</div><div class="ds">${st.ds}</div></div>
+    <div class="phone">
+      <div class="status"><span>9:41</span><span>LTE ▮▮▮</span></div>
+      <div class="screen">
+        <div class="el scr-title" style="${fs('scrTitle',k)}">События ${badge('scrTitle',k)}</div>
+        <div class="el overline" style="${fs('overline',k)}">Ближайшие ${badge('overline',k)}</div>
+
+        <div class="card">
+          <div class="card-top">
+            <div class="el ctitle" style="${fs('cTitle',k)}">Paris ${badge('cTitle',k)}</div>
+            <div class="el bignum" style="${fs('bigNum',k)}">12${badge('bigNum',k)}<span class="u" style="font-size:11px">дней</span></div>
+          </div>
+          <div class="el cbody" style="${fs('cBody',k)}">Поездка в Париж с командой ${badge('cBody',k)}</div>
+          <div class="crow">
+            <span class="el badge" style="${fs('badge',k)}">Иду${badge('badge',k)}</span>
+            <span class="el meta" style="${fs('meta',k)}">4 участника ${badge('meta',k)}</span>
+            <span class="el datecap" style="${fs('dateCap',k)}">через 3 дня ${badge('dateCap',k)}</span>
+          </div>
+        </div>
+
+        <div class="el sec-hdr" style="${fs('secHdr',k)}">Управление событием ${badge('secHdr',k)}</div>
+        <div class="setrow">
+          <div><div class="el rtitle" style="${fs('rTitle',k)}">Уведомления ${badge('rTitle',k)}</div>
+               <div class="el rsub" style="${fs('rSub',k)}">Пуш и почта ${badge('rSub',k)}</div></div>
+          <span class="chev">›</span>
+        </div>
+        <div class="setrow">
+          <div><div class="el rtitle" style="${fs('rTitle',k)}">Приватность ${badge('rTitle',k)}</div>
+               <div class="el rsub" style="${fs('rSub',k)}">Кто видит событие ${badge('rSub',k)}</div></div>
+          <span class="chev">›</span>
+        </div>
+        <div class="el footnote" style="${fs('footnote',k)}">Обновлено только что ${badge('footnote',k)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+document.getElementById('cols').innerHTML = STATES.map(frame).join('');
+
+// сводная таблица
+const order = ['scrTitle','secHdr','cTitle','cBody','bigNum','rTitle','footnote','overline','meta','dateCap','badge','rSub'];
+document.getElementById('sumbody').innerHTML = order.map(id=>{
+  const s=S[id];
+  const cell=(stateKey)=>{
+    const cur=s[stateKey], prev=prevKey[stateKey]?s[prevKey[stateKey]]:null;
+    if(prev!==null && cur!==prev){ const c=stepColor[stateKey]==='g'?'tg':'ta'; return `<span class="${c}">${cur}px</span>`; }
+    return `<span class="tn">${cur}px</span>`;
+  };
+  return `<tr><td>${s.name}</td><td class="mono">${s.tok}</td><td>${cell('before')}</td><td>${cell('v65')}</td><td>${cell('after2')}</td></tr>`;
+}).join('');
+</script>
+</body>
+</html>

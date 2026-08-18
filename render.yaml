@@ -1,0 +1,26 @@
+# Render Static Site config — обрабатывает SPA-роутинг на хард-релоадах.
+# Без этого правила, например, https://app/diag после reload отдавал 404,
+# потому что Render по умолчанию не пробрасывает неизвестные пути на index.html.
+services:
+  - type: web
+    name: messenger-web
+    runtime: static
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Permissions-Policy
+        value: camera=*, microphone=*, geolocation=*
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate

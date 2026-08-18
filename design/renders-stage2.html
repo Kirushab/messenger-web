@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sigmas — рендеры этап 2</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --surface-light:#F5F5F5; --text:#000; --text2:#666; --muted:#999;
+    --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.06);
+    --success:#22C55E; --warning:#EAB308; --danger:#EF4444;
+    --party:linear-gradient(135deg,#EC4899,#BE185D);
+    --trip:linear-gradient(135deg,#60A5FA,#2563EB);
+    --fs-display:26px; --fs-title:20px; --fs-heading:17px; --fs-body:15px;
+    --fs-label:13px; --fs-caption:12px; --fs-micro:11px;
+    --r-md:12px; --r-lg:16px; --r-xl:20px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:#E9EBEF;color:#111;font-family:var(--font);
+    padding:24px 14px 64px;line-height:1.45}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1.page{font-size:24px;font-weight:800;letter-spacing:-0.5px;margin:0 0 4px}
+  p.sub{color:#5b6270;font-size:14px;margin:0 0 26px}
+  .legend{background:#fff;border:1px solid #e3e6eb;border-radius:14px;padding:14px 16px;margin:0 0 30px;font-size:13px;color:#444}
+  .legend b{color:#111}
+  h2.sec{font-size:13px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#7a818d;
+    margin:34px 0 6px;border-top:1px solid #d7dbe2;padding-top:22px}
+  p.secnote{color:#5b6270;font-size:13.5px;margin:0 0 18px;max-width:760px}
+  .row{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+  .variant{flex:0 0 auto;width:340px;max-width:100%}
+  .vtitle{font-size:14px;font-weight:700;color:#111;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+  .vtag{font-size:10.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;
+    color:#fff;background:#111;border-radius:999px;padding:2px 8px}
+  .vdesc{font-size:12.5px;color:#5b6270;margin:0 0 12px;min-height:34px}
+
+  /* ===== Phone frame ===== */
+  .phone{width:340px;height:710px;background:var(--bg);border-radius:42px;
+    border:9px solid #0d0f14;box-shadow:0 18px 50px rgba(20,24,33,.28);
+    overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .status{height:46px;flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 22px 6px;font-size:13px;font-weight:600;color:#000}
+  .status .r{display:flex;gap:6px;align-items:center;font-size:12px}
+  .screen{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .scroll::-webkit-scrollbar{display:none}
+
+  /* generic chat backdrop for attach-menu mockups */
+  .chatbg{position:absolute;inset:0;background:var(--bg)}
+  .chatbg .hdr{position:absolute;top:0;left:0;right:0;height:54px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--bg)}
+  .av{width:36px;height:36px;border-radius:50%;background:#222;flex:0 0 auto}
+  .hname{font-size:14px;font-weight:600}
+  .hsub{font-size:11px;color:var(--muted)}
+  .dim{position:absolute;inset:0;background:rgba(0,0,0,.28)}
+
+  /* ===== Attach sheet shared ===== */
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);
+    border-radius:22px 22px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.16);padding:8px 14px 22px}
+  .grab{width:38px;height:5px;border-radius:3px;background:#d9dce2;margin:6px auto 12px}
+  .sheet h3{font-size:var(--fs-heading);font-weight:700;margin:2px 4px 14px}
+
+  .tile-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px}
+  .tile{display:flex;flex-direction:column;align-items:center;gap:7px;border:none;background:none;cursor:pointer;padding:4px 0}
+  .ticon{width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center}
+  .tlabel{font-size:11.5px;color:var(--text);font-weight:500;text-align:center}
+  .ticon svg{width:26px;height:26px}
+
+  /* big primary cards */
+  .bigcard{display:flex;align-items:center;gap:14px;background:var(--surface-light);
+    border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px;margin-bottom:10px;cursor:pointer}
+  .bigicon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .bigicon svg{width:24px;height:24px}
+  .bigt{font-size:var(--fs-body);font-weight:600}
+  .bigd{font-size:var(--fs-micro);color:var(--muted);margin-top:2px}
+
+  /* grouped list rows */
+  .glabel{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);padding:14px 6px 8px}
+  .lrow{display:flex;align-items:center;gap:13px;background:var(--surface-light);border:1px solid var(--border2);
+    border-radius:14px;padding:11px 12px;margin-bottom:8px;cursor:pointer}
+  .lrow .bigicon{width:40px;height:40px;border-radius:11px}
+  .lrow svg.chev{width:16px;height:16px;color:#c4c8ce;margin-left:auto;flex:0 0 auto}
+  .lt{font-size:14px;font-weight:600}
+  .ld{font-size:11.5px;color:var(--muted);margin-top:1px}
+
+  /* ===== Event detail shared ===== */
+  .hero{position:relative;width:100%;background:#1b2330 var(--heroimg);background-size:cover;background-position:center}
+  .hero.tall{height:300px}.hero.mid{height:210px}
+  .hero .top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between}
+  .cbtn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.42);backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;color:#fff}
+  .cbtn svg{width:18px;height:18px}
+  .scrim{position:absolute;left:0;right:0;bottom:0;height:62%;
+    background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,.15) 65%,transparent)}
+  .herotext{position:absolute;left:18px;right:18px;bottom:16px;color:#fff}
+  .kicker{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);
+    padding:4px 9px;border-radius:999px;margin-bottom:8px}
+  .htitle{font-size:25px;font-weight:800;letter-spacing:-.4px;line-height:1.1;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+  .hmeta{font-size:12.5px;opacity:.95;margin-top:5px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+  .pill{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);
+    color:#fff;font-size:11px;font-weight:700;padding:5px 11px;border-radius:999px}
+  .pill.l{left:14px;right:auto}
+
+  .body{padding:16px 16px 20px}
+  .card{background:var(--surface-light);border:1px solid var(--border2);border-radius:var(--r-lg);
+    padding:13px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+  .cic{width:40px;height:40px;border-radius:11px;background:#ECEFF3;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .cic svg{width:20px;height:20px;color:#4b5563}
+  .clab{font-size:11px;color:var(--muted);font-weight:600}
+  .cval{font-size:14px;font-weight:600;color:var(--text);margin-top:1px}
+  .seclab{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:6px 2px 10px}
+
+  .rsvp{display:flex;gap:8px;margin:4px 0 14px}
+  .rbtn{flex:1;border-radius:14px;padding:12px 0;text-align:center;font-size:13.5px;font-weight:700;
+    border:1px solid var(--border);background:var(--surface-light);color:var(--text);display:flex;flex-direction:column;align-items:center;gap:5px}
+  .rbtn svg{width:17px;height:17px}
+  .rbtn.go{background:#22C55E;color:#fff;border-color:transparent}
+  .rbtn .y{color:#EAB308}.rbtn .n{color:#EF4444}
+
+  .avatars{display:flex;align-items:center}
+  .avatars .a{width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);margin-left:-8px;
+    background-size:cover;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+  .avatars .a:first-child{margin-left:0}
+  .more{font-size:12px;color:var(--muted);margin-left:10px}
+
+  .twobtn{display:flex;gap:10px;margin:6px 0 14px}
+  .obtn{flex:1;border:1px solid var(--border);background:var(--surface-light);border-radius:14px;
+    padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--text)}
+  .obtn svg{width:17px;height:17px}
+
+  .blk{display:flex;align-items:center;gap:13px;background:var(--surface-light);border:1px solid var(--border2);
+    border-radius:14px;padding:12px;margin-bottom:9px}
+  .blk svg.chev{width:16px;height:16px;color:#c4c8ce;margin-left:auto}
+  .blkic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .blkic svg{width:19px;height:19px}
+
+  .sticky{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+    border-top:1px solid var(--border);padding:12px 16px 20px;display:flex;gap:10px}
+  .cta{flex:1;border:none;border-radius:14px;padding:14px 0;font-size:15px;font-weight:700;text-align:center}
+  .cta.primary{background:#000;color:#fff}
+  .cta.ghost{flex:0 0 54px;background:var(--surface-light);border:1px solid var(--border);color:#000;display:flex;align-items:center;justify-content:center}
+  .cta.ghost svg{width:20px;height:20px}
+
+  .mini-map{height:118px;border-radius:14px;margin-bottom:12px;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#dfe7ee,#eef2f6);border:1px solid var(--border2)}
+  .mini-map .pinm{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);color:#2563EB}
+  .mini-map .road{position:absolute;inset:0;background:
+    linear-gradient(90deg,transparent 38%,#cbd5e1 38%,#cbd5e1 41%,transparent 41%),
+    linear-gradient(0deg,transparent 60%,#cbd5e1 60%,#cbd5e1 62%,transparent 62%)}
+
+  .note{font-size:11px;color:#9aa1ad;text-align:center;margin-top:10px}
+  @media(max-width:760px){.variant{width:100%}.phone{width:min(340px,92vw);margin:0 auto}.row{gap:34px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="page">Sigmas · рендеры этап 2</h1>
+  <p class="sub">Светлая тема, как на скринах. Стиль приложения сохранён (монохром + iOS), смелость — в одном месте: фото-герой события и цветные плитки меню.</p>
+  <div class="legend">Выбери по <b>одному</b> варианту в каждой секции (или смешай — «хочу плитки из A, но карточки события из B»). Я учту и доработаю выбранный под реальные данные. Это статичные макеты — не кликабельно.</div>
+
+  <!-- ============ ATTACH MENU ============ -->
+  <h2 class="sec">1 · Меню вложений</h2>
+  <p class="secnote">Сейчас это нижняя панель с горизонтальной лентой из 9 вкладок (тесно, надо листать). Все три варианта показывают всё сразу, без листания вкладок.</p>
+
+  <div class="row">
+    <!-- Variant A: grid -->
+    <div class="variant">
+      <div class="vtitle"><span class="vtag">A</span> Сетка иконок</div>
+      <div class="vdesc">Всё одним экраном — как в Telegram. Самый компактный и быстрый: один взгляд, один тап.</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="r">LTE ▮▮▮</span></div>
+        <div class="screen"><div class="chatbg">
+          <div class="hdr"><div class="av"></div><div><div class="hname">Fedor Gubiev</div><div class="hsub">был(а) недавно</div></div></div>
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div class="tile-grid">
+              <button class="tile"><span class="ticon" style="background:rgba(108,92,231,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span><span class="tlabel">Фото</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(245,158,11,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><text x="12" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="#F59E0B" stroke="none">HD</text></svg></span><span class="tlabel">HD</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(0,184,148,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#00B894" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span class="tlabel">Файл</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(255,107,107,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="tlabel">Гео</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(253,203,110,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#E0A800" stroke-width="1.8"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tlabel">Опрос</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(59,130,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.8"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="tlabel">Событие</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(124,58,237,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><circle cx="15" cy="12" r="1" fill="#7C3AED" stroke="none"/><circle cx="18" cy="10" r="1" fill="#7C3AED" stroke="none"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6C2.6 9.4 2 14.5 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.4-1.4a2 2 0 0 1 1.4-.6h4.3a2 2 0 0 1 1.4.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.5-.6-6.6-.7-7.4a4 4 0 0 0-4-3.6z"/></svg></span><span class="tlabel">Игра</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(236,72,153,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="1.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span><span class="tlabel">Тиндер</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(139,92,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="tlabel">Исчезает</span></button>
+              <button class="tile"><span class="ticon" style="background:rgba(168,85,247,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="1.8"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="tlabel">Скрытое</span></button>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- Variant B: grouped list -->
+    <div class="variant">
+      <div class="vtitle"><span class="vtag">B</span> Список с группами</div>
+      <div class="vdesc">Сгруппировано по смыслу, с описаниями. Спокойнее и понятнее новичку, крупные тап-зоны.</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="r">LTE ▮▮▮</span></div>
+        <div class="screen"><div class="chatbg">
+          <div class="hdr"><div class="av"></div><div><div class="hname">Fedor Gubiev</div><div class="hsub">был(а) недавно</div></div></div>
+          <div class="dim"></div>
+          <div class="sheet" style="max-height:88%;overflow-y:auto">
+            <div class="grab"></div>
+            <div class="glabel" style="padding-top:2px">Медиа</div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(108,92,231,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span><div><div class="lt">Фото или видео</div><div class="ld">Сжатие · экономия трафика</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(0,184,148,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#00B894" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><div><div class="lt">Файл</div><div class="ld">Документ, архив, любой файл</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(255,107,107,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><div><div class="lt">Геопозиция</div><div class="ld">Текущее местоположение</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="glabel">Интерактив</div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(253,203,110,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#E0A800" stroke-width="1.8"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><div><div class="lt">Опрос</div><div class="ld">Вопрос и варианты</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(59,130,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.8"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><div><div class="lt">Событие</div><div class="ld">Поделиться тусой или поездкой</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(124,58,237,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6C2.6 9.4 2 14.5 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.4-1.4a2 2 0 0 1 1.4-.6h4.3a2 2 0 0 1 1.4.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.5-.6-6.6-.7-7.4a4 4 0 0 0-4-3.6z"/></svg></span><div><div class="lt">Игра</div><div class="ld">Шахматы · Crocodile</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="glabel">Приватность</div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(139,92,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><div><div class="lt">Исчезает</div><div class="ld">Самоудаление по таймеру</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="lrow"><span class="bigicon" style="background:rgba(168,85,247,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="1.8"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><div><div class="lt">Скрытое</div><div class="ld">Замазано до тапа</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- Variant C: hybrid -->
+    <div class="variant">
+      <div class="vtitle"><span class="vtag">C</span> Гибрид</div>
+      <div class="vdesc">Частое — крупно (Фото/Файл), остальное — компактной сеткой. Баланс «частое vs редкое».</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="r">LTE ▮▮▮</span></div>
+        <div class="screen"><div class="chatbg">
+          <div class="hdr"><div class="av"></div><div><div class="hname">Fedor Gubiev</div><div class="hsub">был(а) недавно</div></div></div>
+          <div class="dim"></div>
+          <div class="sheet">
+            <div class="grab"></div>
+            <div class="bigcard"><span class="bigicon" style="background:rgba(108,92,231,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#6C5CE7" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span><div style="flex:1"><div class="bigt">Фото или видео</div><div class="bigd">Сжатие · удержи для HD</div></div></div>
+            <div class="bigcard"><span class="bigicon" style="background:rgba(0,184,148,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#00B894" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><div style="flex:1"><div class="bigt">Файл</div><div class="bigd">Документ, архив, любой файл</div></div></div>
+            <div class="glabel" style="padding:6px 4px 10px">Ещё</div>
+            <div class="tile-grid">
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(255,107,107,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#FF6B6B" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span><span class="tlabel">Гео</span></button>
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(253,203,110,.18)"><svg viewBox="0 0 24 24" fill="none" stroke="#E0A800" stroke-width="1.8"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span><span class="tlabel">Опрос</span></button>
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(59,130,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="1.8"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="tlabel">Событие</span></button>
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(124,58,237,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"/><line x1="8" y1="9" x2="8" y2="13"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6C2.6 9.4 2 14.5 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.4-1.4a2 2 0 0 1 1.4-.6h4.3a2 2 0 0 1 1.4.6L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.5-.6-6.6-.7-7.4a4 4 0 0 0-4-3.6z"/></svg></span><span class="tlabel">Игра</span></button>
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(236,72,153,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#EC4899" stroke-width="1.8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></span><span class="tlabel">Тиндер</span></button>
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(139,92,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="tlabel">Исчезает</span></button>
+              <button class="tile"><span class="ticon" style="width:52px;height:52px;background:rgba(168,85,247,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#A855F7" stroke-width="1.8"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="tlabel">Скрытое</span></button>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EVENT DETAIL ============ -->
+  <h2 class="sec">2 · Экран события</h2>
+  <p class="secnote">Сейчас: серый блок-дата, организатор, кнопки RSVP, список блоков. Делаем «как Booking»: фото-герой, чёткая иерархия, прилипшая кнопка действия.</p>
+
+  <div class="row">
+    <!-- Variant A: Booking-style -->
+    <div class="variant">
+      <div class="vtitle"><span class="vtag">A</span> Booking-стиль</div>
+      <div class="vdesc">Фото на весь верх, название и дата поверх фото, прилипшая снизу кнопка RSVP. Самый «travel»-вид.</div>
+      <div class="phone">
+        <div class="status" style="position:absolute;z-index:3;color:#fff"><span>9:41</span><span class="r">LTE ▮▮▮</span></div>
+        <div class="screen">
+          <div class="scroll" style="padding-bottom:84px">
+            <div class="hero tall" style="--heroimg:url('https://picsum.photos/seed/parislouvre/800/600')">
+              <div class="scrim"></div>
+              <div class="top"><span class="cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></span><span class="cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="5" cy="12" r="1.6" fill="#fff"/><circle cx="12" cy="12" r="1.6" fill="#fff"/><circle cx="19" cy="12" r="1.6" fill="#fff"/></svg></span></div>
+              <div class="herotext">
+                <span class="kicker">✈ Поездка</span>
+                <div class="htitle">Paris</div>
+                <div class="hmeta">Пт, 17 июля 2026 · 12:00 — 22 июля · 📍 Париж</div>
+              </div>
+            </div>
+            <div class="body">
+              <div class="card"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><div><div class="clab">Когда</div><div class="cval">17–22 июля · 12:00</div></div></div>
+              <div class="card"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg></span><div><div class="clab">Организатор</div><div class="cval">KIRILL BOGDANOV (вы)</div></div></div>
+              <div class="seclab">Участники · 4</div>
+              <div style="display:flex;align-items:center;margin-bottom:16px">
+                <div class="avatars">
+                  <span class="a" style="background:#6C5CE7">К</span><span class="a" style="background:#EC4899">F</span><span class="a" style="background:#22C55E">С</span><span class="a" style="background:#3B82F6">A</span>
+                </div><span class="more">+ ещё никто</span>
+              </div>
+              <div class="seclab">Что внутри</div>
+              <div class="blk"><span class="blkic" style="background:rgba(34,197,94,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></svg></span><div><div class="lt">Расходы</div><div class="ld">Скиньтесь и поделите счёт</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+              <div class="blk"><span class="blkic" style="background:rgba(59,130,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></span><div><div class="lt">Маршрут</div><div class="ld">Точки на карте Mapbox</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+              <div class="blk"><span class="blkic" style="background:rgba(37,99,235,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8"><circle cx="8" cy="18" r="3"/><path d="M11 18V5l9-2v11"/></svg></span><div><div class="lt">Плейлист</div><div class="ld">Привязать из Spotify</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            </div>
+          </div>
+          <div class="sticky">
+            <button class="cta primary">✓ Иду</button>
+            <button class="cta ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant B: card-native -->
+    <div class="variant">
+      <div class="vtitle"><span class="vtag">B</span> Карточки (app-native)</div>
+      <div class="vdesc">Фото в скруглённой карточке, под ним аккуратный столбик карточек: дата, место с мини-картой, RSVP-сегмент. Ближе к стилю самого приложения.</div>
+      <div class="phone">
+        <div class="status"><span>9:41</span><span class="r">LTE ▮▮▮</span></div>
+        <div class="screen"><div class="scroll">
+          <div style="padding:10px 14px 0;display:flex;align-items:center;gap:10px">
+            <span class="cbtn" style="background:var(--surface-light);color:#000"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></span>
+            <div style="font-size:17px;font-weight:700">Поездка</div>
+          </div>
+          <div style="padding:12px 14px 4px">
+            <div style="position:relative;border-radius:18px;overflow:hidden;height:188px">
+              <img src="https://picsum.photos/seed/paris2/800/520" style="width:100%;height:100%;object-fit:cover;display:block">
+              <span class="pill l">✈ Поездка</span><span class="pill">Иду</span>
+            </div>
+            <div style="font-size:23px;font-weight:800;letter-spacing:-.4px;margin:14px 2px 2px">Paris</div>
+            <div style="font-size:13px;color:var(--muted);margin:0 2px 14px">Пт, 17 июля · 12:00 — 22 июля</div>
+
+            <div class="rsvp">
+              <div class="rbtn go"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg>Иду</div>
+              <div class="rbtn"><svg class="y" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.4V14"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Возможно</div>
+              <div class="rbtn"><svg class="n" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>Не иду</div>
+            </div>
+
+            <div class="card"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><div><div class="clab">Даты</div><div class="cval">17 – 22 июля 2026</div></div></div>
+
+            <div class="seclab">Где</div>
+            <div class="mini-map"><div class="road"></div><div class="pinm"><svg width="26" height="26" viewBox="0 0 24 24" fill="#2563EB" stroke="#fff" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3" fill="#fff" stroke="none"/></svg></div></div>
+
+            <div class="card"><span class="cic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg></span><div><div class="clab">Организатор</div><div class="cval">KIRILL BOGDANOV (вы)</div></div></div>
+
+            <div class="twobtn">
+              <div class="obtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Чат</div>
+              <div class="obtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.4"/><path d="M3 20v-1a5 5 0 0 1 9-3"/><path d="M17 8v6M14 11h6"/></svg>Пригласить</div>
+            </div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- Variant C: compact hero + inline RSVP -->
+    <div class="variant">
+      <div class="vtitle"><span class="vtag">C</span> Компактный герой</div>
+      <div class="vdesc">Фото пониже, RSVP-сегмент сразу под названием (главное действие — на первом экране), дальше секции. Легче и быстрее, без прилипшей панели.</div>
+      <div class="phone">
+        <div class="status" style="position:absolute;z-index:3;color:#fff"><span>9:41</span><span class="r">LTE ▮▮▮</span></div>
+        <div class="screen"><div class="scroll">
+          <div class="hero mid" style="--heroimg:url('https://picsum.photos/seed/paris3/800/420')">
+            <div class="scrim" style="height:50%"></div>
+            <div class="top"><span class="cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></span><span class="cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><circle cx="5" cy="12" r="1.6" fill="#fff"/><circle cx="12" cy="12" r="1.6" fill="#fff"/><circle cx="19" cy="12" r="1.6" fill="#fff"/></svg></span></div>
+            <div class="herotext"><span class="kicker">✈ Поездка</span><div class="htitle" style="font-size:22px">Paris</div></div>
+          </div>
+          <div class="body" style="padding-top:14px">
+            <div style="font-size:13.5px;color:var(--muted);margin:0 2px 12px">Пт, 17 июля 2026 · 12:00 — 22 июля · 📍 Париж, Франция</div>
+            <div class="rsvp">
+              <div class="rbtn go"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg>Иду</div>
+              <div class="rbtn"><svg class="y" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3 2.4V14"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Возможно</div>
+              <div class="rbtn"><svg class="n" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>Не иду</div>
+            </div>
+            <div class="twobtn" style="margin-top:0">
+              <div class="obtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Чат события</div>
+              <div class="obtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.4"/><path d="M3 20v-1a5 5 0 0 1 9-3"/><path d="M17 8v6M14 11h6"/></svg>Пригласить</div>
+            </div>
+            <div class="seclab">Участники · 4</div>
+            <div style="display:flex;align-items:center;margin-bottom:16px">
+              <div class="avatars"><span class="a" style="background:#6C5CE7">К</span><span class="a" style="background:#EC4899">F</span><span class="a" style="background:#22C55E">С</span><span class="a" style="background:#3B82F6">A</span></div>
+            </div>
+            <div class="seclab">Что внутри</div>
+            <div class="blk"><span class="blkic" style="background:rgba(34,197,94,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M9 13h6M9 17h4"/></svg></span><div><div class="lt">Расходы</div><div class="ld">Поделить счёт</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+            <div class="blk"><span class="blkic" style="background:rgba(59,130,246,.14)"><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg></span><div><div class="lt">Маршрут</div><div class="ld">Точки на карте</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Иконки и цвета взяты из текущего кода приложения. Фото — заглушки (picsum). Реальные размеры/контент подставлю в выбранном варианте.</p>
+</div>
+</body>
+</html>
